@@ -1,0 +1,17 @@
+#  This file contains items that software plans to put on the robot
+#  Items are list with an item description, cost, and weight.
+#  These are to be inserted into the robot BOM (Bill of Materials)
+#  so we can track that we are under cost and under weight.
+#
+#  Once we have some weights, we can decide on quantities and insert them
+#  into the spreadsheet.
+#
+#  Item                                        Cost                    Weight
+Raspberry Pi in case                           $35.00                   2oz (est)
+Pi camera mounted in same case                 $25.00                   1oz (est)
+Ankur 5v phone charger (power supply)          $20.00                   4oz (est)
+Elegoo Mega (Arduino Mega Clone)               $15.00                   2oz (est)
+NeoMatrix light panel (8 x 32)                 $37.00                   6oz (est)
+Sony Eye camera (secondary vision camera)       $5.00                   4oz (est)
+Sonar Sensors                                  $25.00                   1oz (est)
+Proximity Sensor (new/fancy Rockwell)           ??                      4oz (est)
