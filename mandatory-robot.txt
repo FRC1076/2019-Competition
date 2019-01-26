@@ -1,0 +1,45 @@
+The following are electrical and hardware requirements as specified by software team.
+(refine these/expand on them)
+
+1. Dual sonar mounts on front of robot in a position that will permit the sonar to
+   determine if the robot is square to the pickup delivery points.
+    a. mounts
+    b. 5v power connection to Arduino
+    c. 3wires from Arduino to each of the sonar units  (see software for wiring diagram)
+
+2. Proximity sensor to detect if the elevator is all the way at the bottom.
+   Check wiring, wire to RoboRio digital pins as appropriate.    Tell us what pin.
+   You'll need to read the specs on that 
+
+3. NeoMatrix panels 4 on each side of the robot, each side powered by 5v supply and
+   controlled by an arduino mega with ethernet shield
+
+4. Encoder mounted on the elevator drivetrain.  (need breakout connected to a motor
+   controller powering the elevator.)
+
+5. Drivercamera, wired into ethernet hub.  Powered by 5v phone charger battery.
+   (need mounting places for both)
+   Drivercamera must be able to see when delivering hatch and/or ball.
+   It can be used for alignment, so should be able to see the floor in front of the robot.
+
+6. 5 port ethernet hub (powered by 5v, check the devices)
+
+7. Motor controller ID assignments:
+    
+    Can ID for drivetrain:
+    
+      Left Side:
+      
+     Left Side:    1, 2, 3  (1 is master, 3 is the Victor)
+     Right Side:   4, 5, 6  (4 is master, 6 is the Victor)
+     Elevator:     7, 8     (encoder breakout from 7)
+     Ball Intake   9
+       
+     Pneumatics:
+            1,2:     Hatchgrabber
+            3,4:     Deploy Intake forward
+            5,6:     LeftFront piston
+            7,8:     RightFront piston
+            9,10:    RightRear piston
+            11,12:   LeftRear piston
+  
