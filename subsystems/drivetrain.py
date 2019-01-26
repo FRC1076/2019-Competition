@@ -38,7 +38,6 @@ class Drivetrain:
     def get_encoder_position(self):
         return self.encoder_motor.getQuadraturePosition()
 
-    def updatePID(self:
+    def updatePID(self):
         self.PID()
         #print("Correction: ", self.rcw, " | Setpoint:", self.setpoint, " | Gyro", self.gyro.getRate())
-

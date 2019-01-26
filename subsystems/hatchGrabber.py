@@ -1,7 +1,7 @@
 from wpilib import DoubleSolenoid
 
 class Grabber:
-    def __init__(self, retract, extend)
+    def __init__(self, retract, extend):
         self.out = SolenoidPair(retract, extend)
 
     def lower_down(self):

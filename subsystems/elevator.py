@@ -10,5 +10,5 @@ class Elevator:
     def go_down(self, speed = 1.0):
         self.motor.set(-speed)
 
-    def stop(self)
+    def stop(self):
         self.motor.set(0)
