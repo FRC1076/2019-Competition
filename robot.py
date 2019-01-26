@@ -1,18 +1,24 @@
+import math
 import wpilib
+#import wpilib.interfaces from GenericHID
+#LEFT = wpilib.interfaces.GenericHID.Hand.kLeft
+RIGHT = wpilib.interfaces.GenericHID.Hand.kRight
+#LEFT = GenericHID.Hand.kLeft
+#RIGHT = GenericHID.Hand.kRight
+print("main")
 
-LEFT = GenericHID.Hand.kLeft
-RIGHT = GenericHID.Hand.kRight
-
-class Robot(wpilib.IterativeRobot):
+class MyRobot(wpilib.IterativeRobot):
     def robotInit(self):
+        print("RobotInit")
         #assigns driver as controller 0 and operator as controller 1
-
         self.driver = wpilib.XboxController(0)
         self.operator = wpilib.XboxController(1)
 
     def robotPeriodic(self):
+        pass
 
     def teleopInit(self):
+        pass
 
     def teleopPeriodic(self):
         #Arcade Controls
@@ -20,8 +26,8 @@ class Robot(wpilib.IterativeRobot):
         DEADZONE = 0.2
         MAX_ACCELERATION = 0.3
 
-        goal_forward = -self.driver.getY(RIGHT)
-        goal_rotate = self.driver.getX(LEFT)
+        #goal_forward = -self.driver.getY(RIGHT)
+        #goal_rotate = self.driver.getX(LEFT)
 
         MAX_FORWARD = 1.0
         MAX_ROTATE = 1.0
@@ -40,3 +46,6 @@ def deadzone(val, deadzone):
     if abs(val) < deadzone:
         return 0
     return val
+
+if __name__ == "__main__":
+    wpilib.run(MyRobot)
