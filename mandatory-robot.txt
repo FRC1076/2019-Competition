@@ -22,7 +22,7 @@ The following are electrical and hardware requirements as specified by software 
    Drivercamera must be able to see when delivering hatch and/or ball.
    It can be used for alignment, so should be able to see the floor in front of the robot.
 
-6. 5 port ethernet hub (powered by 5v, 3.5 mm Barrel connector)
+6. 5 port ethernet hub (powered by 5v, 3.5 mm Barrel connector, rated at 600 milliamps)
 
 7. Motor controller ID assignments:
     
