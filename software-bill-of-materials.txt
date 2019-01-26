@@ -6,12 +6,13 @@
 #  Once we have some weights, we can decide on quantities and insert them
 #  into the spreadsheet.
 #
-#  Item                                        Cost                    Weight
-Raspberry Pi in case                           $35.00                   2oz (est)
-Pi camera mounted in same case                 $25.00                   1oz (est)
-Ankur 5v phone charger (power supply)          $20.00                   4oz (est)
-Elegoo Mega (Arduino Mega Clone)               $15.00                   2oz (est)
-NeoMatrix light panel (8 x 32)                 $37.00                   6oz (est)
-Sony Eye camera (secondary vision camera)       $5.00                   4oz (est)
-Sonar Sensors                                  $25.00                   1oz (est)
-Proximity Sensor (new/fancy Rockwell)           ??                      4oz (est)
+#  Item                                              Cost                    Weight
+Raspberry Pi and Pi camera in case                  $35.00                   2.9oz
+Ankur 5v phone charger w/ USB cord(power supply)    $20.00                   4.75oz
+Elegoo Mega (Arduino Mega Clone)                    $15.00                   2.15oz
+NeoMatrix light panel (8 x 32)                      $37.00                   2.1oz
+Sony Eye camera (secondary vision camera)           $5.00                    5.75oz
+Sonar Sensors                                       $25.00                   0.2oz
+Proximity Sensor (new/fancy Rockwell)                ??                      7oz (est)
+1.5 foot Ethernet cable                                                      0.7oz
+3 foot Ethernet cable                                                        1.1oz
