@@ -1,7 +1,6 @@
 import math
 import wpilib
 # import ctre 
-# import robotpy_ext.common_drivers.navx as navx
 from subsystems.drivetrain import Drivetrain
 # from subsystems.elevator import Elevator
 #from subsystems.hatchGrabber import Grabber
