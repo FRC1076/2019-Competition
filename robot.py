@@ -15,6 +15,7 @@ class MyRobot(wpilib.TimedRobot):
         #assigns driver as controller 0 and operator as controller 1
         self.driver = wpilib.XboxController(0)
         self.operator = wpilib.XboxController(1)
+        self.gyro = wpilib.AnalogGyro(1)
         LeftFront = wpilib.Talon(1)
         LeftFront.setInverted(1)
         self.leftGroup = wpilib.SpeedControllerGroup(LeftFront, wpilib.Talon(2), wpilib.Talon(3))
@@ -29,7 +30,7 @@ class MyRobot(wpilib.TimedRobot):
         pass
 
     def teleopPeriodic(self):
-        self.robot_drive.arcade_drive(self.driver.getX(LEFT), self.driver.getY(RIGHT))
+        self.robot_drive.arcade_drive(-self.driver.getX(LEFT), -self.driver.getRawAxis(3))
         return;
 
 if __name__ == "__main__":
