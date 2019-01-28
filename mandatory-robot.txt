@@ -1,3 +1,9 @@
+                                                         Jan 27, 2019
+                                                         Version 1.0
+
+https://github.com/FRC1076/2019-Competition/edit/master/mandatory-robot.txt
+Printed versions of this document are considered obsolete.
+
 The following are electrical and hardware requirements as specified by software team.
 (refine these/expand on them)
 
@@ -8,23 +14,28 @@ The following are electrical and hardware requirements as specified by software 
     c. 3wires from Arduino to each of the sonar units  (see software for wiring diagram)
 
 2. Proximity sensor to detect if the elevator is all the way at the bottom.
-   Check wiring, wire to RoboRio digital pins as appropriate.    Tell us what pin.
-   You'll need to read the specs on that 
+   Check wiring, wire to RoboRio analog pin as appropriate.    Tell us what pin.
+   You'll need to read the specs on the voltage ranges to make sure they are compatible
+   with the input voltages accepted by the Rio.
 
-3. NeoMatrix panels 4 on each side of the robot, each side powered by 5v supply and
-   controlled by an arduino mega with ethernet shield
+3. NeoMatrix panels 4 on each side of the robot, each side powered by a 5v supply and
+   controlled by an arduino mega with ethernet shield.    One controller per side.
 
 4. Encoder mounted on the elevator drivetrain.  (need breakout connected to a motor
-   controller powering the elevator.)
+   controller powering the elevator.)    Need this soon, we can debug this code.
 
 5. Drivercamera, wired into ethernet hub.  Powered by 5v phone charger battery.
-   (need mounting places for both)
+   (need mounting places for both battery and the Pi case/camera.)
+   
    Drivercamera must be able to see when delivering hatch and/or ball.
    It can be used for alignment, so should be able to see the floor in front of the robot.
+   
+6. Sony eyecam pointed at the floor at center axis to support line following/alignment.
 
-6. 5 port ethernet hub (powered by 5v, 3.5 mm Barrel connector, rated at 600 milliamps)
+7. 5 port ethernet hub (powered by 5v, 3.5 mm Barrel connector, rated at 600 milliamps)
+   We need to be able to access the ports.  
 
-7. Motor controller ID assignments:
+8. Motor controller ID assignments to be set/wired before giving the robot to software.
     
     Can ID for drivetrain:
     
