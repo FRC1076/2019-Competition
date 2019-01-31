@@ -84,7 +84,13 @@ class MyRobot(wpilib.IterativeRobot):
 
         #END GAME 
 
-        
+        activate_pistons = self.operator.getStartButton() and self.driver.getStartButton()
+        release_pistons = self.operator.getBackButtonReleased() or self.driver.getStartButtonReleased()
+
+        if activate_pistons:
+            self.lift.raise_up()
+        if release_pistons:
+            self.lift.lower_down()
 
     def deadzone(val, deadzone):
         if abs(val) < deadzone:
