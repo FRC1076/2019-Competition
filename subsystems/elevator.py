@@ -1,7 +1,8 @@
 import wpilib
 
 class Elevator:
-    def __init__(self, motor):
+    def __init__(self, motor, encoder_motor=None):
+        self.encoder_motor = encoder_motor
         self.motor = motor
 
     def go_up(self, speed = 1.0):
