@@ -6,6 +6,7 @@ from subsystems.elevator import Elevator
 from subsystems.hatchGrabber import Grabber
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
+from navx import AHRS
 
 LEFT = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT = wpilib.interfaces.GenericHID.Hand.kRight
@@ -31,17 +32,7 @@ ELEVATOR_ID_SLAVE = 8
 MIN_ELEVATOR_RANGE = 0
 MAX_ELEVATOR_RANGE = 200
 
-if wpilib.RobotBase.isSimulation():
-    kP = 0.06
-    kI = 0.00
-    kD = 0.00
-    kF = 0.00
-else:
-    kP = 0.03
-    kI = 0.00
-    kD = 0.00
-    kF = 0.00
-kToleranceDegrees = 2.0 # What is this?
+
 
 class MyRobot(wpilib.IterativeRobot):
     def robotInit(self):
@@ -72,19 +63,11 @@ class MyRobot(wpilib.IterativeRobot):
         
 
         '''
+        self.command = None
         self.ahrs = AHRS.create_spi()
-
-        elevatorAttendant = wpilib.PIDController(
-            self.kP, self.Ki, self.kD, self.kF, self.ahrs, output=self
-            )
-        elevatorAttendant.setInputRange(MIN_ELEVATOR_RANGE, MAX_ELEVATOR_RANGE) 
-        elevatorAttendant.setOutputRange(-1.0, 1.0)
-        elevatorAttendant.setAbsoluteTolerance(self.kToleranceDegrees)
-        elevatorAttendant.setContinuous(True)
-
-        self.elevatorAttendant = elevatorAttendant
-        self.elevateToHeightRate = 0
-
+        #self.encoder = wpilib.Encoder()
+        
+        self.command = elevatorAttendant(self.encoder, 0, 100, -1, 1)
 
     def robotPeriodic(self):
         pass
@@ -119,7 +102,35 @@ class MyRobot(wpilib.IterativeRobot):
         self.drivetrain.arcade_drive(self.forward, rotation_value)
 
         #ELEVATOR CONTROL
+        elevateToHeight = False
+        #If proximity sensor = 0
+            #self.encoder.reset()
 
+        if (self.operator.getAButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
+            self.command.setSetpoint(LOW_CARGO_VALUE)
+                elevateToHeight = True
+            print("low cargo value")
+
+        elif self.operator.getAButton():
+            self.command.setSetpoint(LOW_HATCH_VALUE)
+            elevateToHeight = True
+
+        elif self.operator.getBButton():
+            self.command.setSetpoint(MEDIUM_CARGO_VALUE)
+            elevateToHeight = True
+
+        elif self.operator.getAButton():
+            self.command.setSetpoint(MEDIUM_HATCH_VALUE)
+            elevateToHeight = True
+        
+        elif self.operator.getBButton():
+            self.command.setSetpoint(HIGH_CARGO_VALUE)
+            elevateToHeight = True
+
+        elif self.operator.getRawButton(4):
+            self.command.setSetpoint(HIGH_HATCH_VALUE)
+            elevateToHeight = True
+        
 
         '''
         Guitar Hero controls
@@ -157,25 +168,39 @@ def createMasterAndSlaves(MASTER, slave1, slave2):
 
     return master_talon
 
+class elevatorAttendant:
+    def __init__(self, encoder, lowInput, highInput, lowOutput, highOutput)
+        self.encoder = encoder
+
+        kP = 0.01
+        kI = 0.00
+        kD = 0.00
+        self.pid = wpilib.PIDController(kP, kI, kD, source = encoder, output = self)
+        self.pid.setInputRange(lowInput, highInput)
+        self.pid.setOutputRange(lowOutputm highOutput)
+
+    def pidWrite(self, output):
+        self.elevateToHeightRate = output
+    
+    def getHeightRate(self):
+        return self.elevateToHeightRate
+
+    def turn(self):
+        self.pid.enable()
+    
+    def stop(self):
+        self.pid.disable()
+
+    def setSetpoint(self, height):
+        self.pid.setSetpoint(height)
+
+
 def guitarElevatorControl(self):
     '''
     Takes input from the guitar hero controller and uses setpoints to move the elevator up and down to certain points
     '''
     #Need to finish the hatch plate values, cargo values, witht he correct buttons
-    if (self.operator.getAButton() and self.operator.getTriggerAxis(self.LEFT)):
-        self.elevatorAttendant.setSetpoint(LOW_CARGO_VALUE)
-        elevateToHeight = True
-    elif self.operator.getAButton():
-        self.elevatorAttendant.setSetpoint(LOW_HATCH_VALUE)
-        elevateToHeight = True
-    elif self.operator.getBButton():
-        self.elevatorAttendant.setSetpoint(MEDIUM_HATCH_VALUE)
-        elevateToHeight = True
-    elif self.operator.getRawButton(4):
-        self.elevatorAttendant.setSetpoint(HIGH_HATCH_VALUE)
-        elevateToHeight = True
     
-
     if elevateToHeight:
         self.elevatorAttendant.enable()
         currentRotationRate = self.elevateToHeightRate
