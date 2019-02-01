@@ -19,12 +19,14 @@ RIGHT_MASTER_ID = 4
 RIGHT_SLAVE_1_ID = 5
 RIGHT_SLAVE_2_ID = 6
 
-#HATCH GRABBER PISTON IDs (pneumatics)
+
+#HATCH GRABBER PISTON IDs(pneumatics)
 RETRACT_ID = 1
 EXTEND_ID = 2
 
 #ELEVATOR ID
-ELEVATOR_ID = 0
+ELEVATOR_ID_MASTER = 7
+ELEVATOR_ID_SLAVE = 8
 
 class MyRobot(wpilib.IterativeRobot):
     def robotInit(self):
@@ -47,7 +49,7 @@ class MyRobot(wpilib.IterativeRobot):
             )
         
         #ELEVATOR
-        elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID)
+        elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
        
     def robotPeriodic(self):
@@ -65,8 +67,9 @@ class MyRobot(wpilib.IterativeRobot):
         max_forward = 1.0
         max_rotate = 1.0
 
-        goal_forward = -self.driver.getY(RIGHT)
-        rotation_value = self.driver.getX(LEFT)
+
+        goal_forward = self.driver.getRawAxis(3)
+        rotation_value = -self.driver.getX(LEFT)
 
         goal_forward = deadzone(goal_forward * max_forward, deadzone_value)
         rotation_value = deadzone(rotation_value * max_rotate, deadzone_value)
@@ -77,6 +80,7 @@ class MyRobot(wpilib.IterativeRobot):
             self.forward += delta
         else:
             self.forward += max_accel * sign(delta)
+
 
         self.drivetrain.arcade_drive(self.forward, rotation_value)
 
@@ -102,17 +106,6 @@ class MyRobot(wpilib.IterativeRobot):
         if release_pistons:
             self.lift.lower_down()
 
-def deadzone(val, deadzone):
-    if abs(val) < deadzone:
-        return 0
-    return val
-
-def sign(number):
-    if number > 0:
-        return 1
-    else:
-        return -1
-
 def createMasterAndSlaves(MASTER, slave1, slave2):
     '''
     First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
@@ -127,6 +120,19 @@ def createMasterAndSlaves(MASTER, slave1, slave2):
     slave_victor.follow(master_talon)
 
     return master_talon
+
+
+def deadzone(val, deadzone):
+    if abs(val) < deadzone:
+        return 0
+    return val
+
+
+def sign(number):
+    if number > 0:
+        return 1
+    else:
+        return -1
 
 
 if __name__ == "__main__":

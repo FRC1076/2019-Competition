@@ -30,7 +30,7 @@ class Drivetrain:
         self.prev_error = error
 
     def arcade_drive(self, forward, rotate):
-        self.robot_drive.arcadeDrive(-forward, rotate)
+        self.robot_drive.arcadeDrive(forward, rotate)
 
     def stop(self):
         self.robot_drive.stopMotor()
