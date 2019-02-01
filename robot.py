@@ -40,6 +40,8 @@ class MyRobot(wpilib.IterativeRobot):
         right = createMasterAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID, RIGHT_SLAVE_2_ID)
         self.drivetrain = Drivetrain(left, right, self.gyro)
 
+        self.fakeDrivetrain = Drivetrain(wpilib.Talon(9), wpilib.Talon(10), self.gyro)
+
         #HATCH GRABBER
         self.grabber = Grabber(
             retract = wpilib.Solenoid(RETRACT_ID),
@@ -79,6 +81,8 @@ class MyRobot(wpilib.IterativeRobot):
             self.forward += max_accel * sign(delta)
 
         self.drivetrain.arcade_drive(self.forward, rotation_value)
+
+        self.fakeDrivetrain.arcade_drive(self.forward, rotation_value)
 
         #ELEVATOR CONTROL
         '''
