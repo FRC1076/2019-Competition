@@ -28,6 +28,7 @@ class PhysicsEngine(object):
 
         self.physics_controller = physics_controller
         self.position = 0
+        self.motion = pyfrc.physics.motion.LinearMotion('Linear Motion', 2, 360, 9)
 
         # Change these parameters to fit your robot!
         bumper_width = 3.25 * units.inch
@@ -58,6 +59,7 @@ class PhysicsEngine(object):
         # Simulate the drivetrain
         l_motor = hal_data["pwm"][9]["value"]
         r_motor = hal_data["pwm"][10]["value"]
+        hal_data['encoder'][0]['value'] = self.motion.compute(l_motor)
         # print("hal ", hal_data["pwm"][1]["value"], " ", hal_data["pwm"][2]["value"])
 
         x, y, angle = self.drivetrain.get_distance(l_motor, r_motor, tm_diff)
