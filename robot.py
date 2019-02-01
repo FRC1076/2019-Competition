@@ -19,12 +19,29 @@ RIGHT_MASTER_ID = 4
 RIGHT_SLAVE_1_ID = 5
 RIGHT_SLAVE_2_ID = 6
 
-#HATCH GRABBER PISTON IDs (pneumatics)
+#HATCH GRABBER PISTON IDs(pneumatics)
 RETRACT_ID = 1
 EXTEND_ID = 2
 
 #ELEVATOR ID
-ELEVATOR_ID = 0
+ELEVATOR_ID_MASTER = 7
+ELEVATOR_ID_SLAVE = 8
+
+#ELEVATOR PID IDs
+MIN_ELEVATOR_RANGE = 0
+MAX_ELEVATOR_RANGE = 200
+
+if wpilib.RobotBase.isSimulation():
+    kP = 0.06
+    kI = 0.00
+    kD = 0.00
+    kF = 0.00
+else:
+    kP = 0.03
+    kI = 0.00
+    kD = 0.00
+    kF = 0.00
+kToleranceDegrees = 2.0 # What is this?
 
 class MyRobot(wpilib.IterativeRobot):
     def robotInit(self):
@@ -40,8 +57,6 @@ class MyRobot(wpilib.IterativeRobot):
         right = createMasterAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID, RIGHT_SLAVE_2_ID)
         self.drivetrain = Drivetrain(left, right, self.gyro)
 
-        self.fakeDrivetrain = Drivetrain(wpilib.Talon(9), wpilib.Talon(10), self.gyro)
-
         #HATCH GRABBER
         self.grabber = Grabber(
             retract = wpilib.Solenoid(RETRACT_ID),
@@ -49,9 +64,28 @@ class MyRobot(wpilib.IterativeRobot):
             )
         
         #ELEVATOR
-        elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID)
+        elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
        
+        #ELEVATOR PID
+        '''
+        
+
+        '''
+        self.ahrs = AHRS.create_spi()
+
+        elevatorAttendant = wpilib.PIDController(
+            self.kP, self.Ki, self.kD, self.kF, self.ahrs, output=self
+            )
+        elevatorAttendant.setInputRange(MIN_ELEVATOR_RANGE, MAX_ELEVATOR_RANGE) 
+        elevatorAttendant.setOutputRange(-1.0, 1.0)
+        elevatorAttendant.setAbsoluteTolerance(self.kToleranceDegrees)
+        elevatorAttendant.setContinuous(True)
+
+        self.elevatorAttendant = elevatorAttendant
+        self.elevateToHeightRate = 0
+
+
     def robotPeriodic(self):
         pass
 
@@ -67,8 +101,9 @@ class MyRobot(wpilib.IterativeRobot):
         max_forward = 1.0
         max_rotate = 1.0
 
-        goal_forward = -self.driver.getY(RIGHT)
-        rotation_value = self.driver.getX(LEFT)
+
+        goal_forward = self.driver.getRawAxis(3)
+        rotation_value = -self.driver.getX(LEFT)
 
         goal_forward = deadzone(goal_forward * max_forward, deadzone_value)
         rotation_value = deadzone(rotation_value * max_rotate, deadzone_value)
@@ -80,11 +115,12 @@ class MyRobot(wpilib.IterativeRobot):
         else:
             self.forward += max_accel * sign(delta)
 
+
         self.drivetrain.arcade_drive(self.forward, rotation_value)
 
-        self.fakeDrivetrain.arcade_drive(self.forward, rotation_value)
-
         #ELEVATOR CONTROL
+
+
         '''
         Guitar Hero controls
         1: Hatch Panel Low. 1+Wammy: Cargo Low (1, z!=0)
@@ -106,17 +142,6 @@ class MyRobot(wpilib.IterativeRobot):
         if release_pistons:
             self.lift.lower_down()
 
-def deadzone(val, deadzone):
-    if abs(val) < deadzone:
-        return 0
-    return val
-
-def sign(number):
-    if number > 0:
-        return 1
-    else:
-        return -1
-
 def createMasterAndSlaves(MASTER, slave1, slave2):
     '''
     First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
@@ -131,6 +156,45 @@ def createMasterAndSlaves(MASTER, slave1, slave2):
     slave_victor.follow(master_talon)
 
     return master_talon
+
+def guitarElevatorControl(self):
+    '''
+    Takes input from the guitar hero controller and uses setpoints to move the elevator up and down to certain points
+    '''
+    #Need to finish the hatch plate values, cargo values, witht he correct buttons
+    if (self.operator.getAButton() and self.operator.getTriggerAxis(self.LEFT)):
+        self.elevatorAttendant.setSetpoint(LOW_CARGO_VALUE)
+        elevateToHeight = True
+    elif self.operator.getAButton():
+        self.elevatorAttendant.setSetpoint(LOW_HATCH_VALUE)
+        elevateToHeight = True
+    elif self.operator.getBButton():
+        self.elevatorAttendant.setSetpoint(MEDIUM_HATCH_VALUE)
+        elevateToHeight = True
+    elif self.operator.getRawButton(4):
+        self.elevatorAttendant.setSetpoint(HIGH_HATCH_VALUE)
+        elevateToHeight = True
+    
+
+    if elevateToHeight:
+        self.elevatorAttendant.enable()
+        currentRotationRate = self.elevateToHeightRate
+    else:
+        self.elevatorAttendant.disable()
+        currentRotationRate = self.stick.getTwist()
+
+
+def deadzone(val, deadzone):
+    if abs(val) < deadzone:
+        return 0
+    return val
+
+
+def sign(number):
+    if number > 0:
+        return 1
+    else:
+        return -1
 
 
 if __name__ == "__main__":
