@@ -19,9 +19,9 @@ RIGHT_MASTER_ID = 4
 RIGHT_SLAVE_1_ID = 5
 RIGHT_SLAVE_2_ID = 6
 
-#HATCH GRABBER PISTON IDs
-RETRACT_ID = 0
-EXTEND_ID = 0
+#HATCH GRABBER PISTON IDs (pneumatics)
+RETRACT_ID = 1
+EXTEND_ID = 2
 
 #ELEVATOR ID
 ELEVATOR_ID = 0
@@ -78,7 +78,7 @@ class MyRobot(wpilib.IterativeRobot):
         else:
             self.forward += max_accel * sign(delta)
 
-        self.robot_drive.arcade_drive(self.forward, rotation_value)
+        self.drivetrain.arcade_drive(self.forward, rotation_value)
 
         #ELEVATOR CONTROL
         '''
@@ -102,33 +102,31 @@ class MyRobot(wpilib.IterativeRobot):
         if release_pistons:
             self.lift.lower_down()
 
-    def deadzone(val, deadzone):
-        if abs(val) < deadzone:
-            return 0
-        return val
+def deadzone(val, deadzone):
+    if abs(val) < deadzone:
+        return 0
+    return val
 
-    def sign(number):
-        if number > 0:
-            return 1
-        else:
-            return -1
+def sign(number):
+    if number > 0:
+        return 1
+    else:
+        return -1
 
+def createMasterAndSlaves(MASTER, slave1, slave2):
+    '''
+    First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
+    This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
+    '''
+    master_talon = ctre.WPI_TalonSRX(MASTER)
 
+    slave_talon = ctre.WPI_TalonSRX(slave1)
+    slave_victor = ctre.victorspx.VictorSPX(slave2)
 
-    def createMasterAndSlaves(MASTER, slave1, slave2):
-        '''
-        First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
-        This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
-        '''
-        master_talon = ctre.WPI_TalonSRX(MASTER)
+    slave_talon.follow(master_talon)
+    slave_victor.follow(master_talon)
 
-        slave_talon = ctre.WPI_TalonSRX(slave1)
-        slave_victor = ctre.victorspx.VictorSPX(slave2)
-
-        slave_talon.follow(master_talon)
-        slave_victor.follow(master_talon)
-
-        return master_talon
+    return master_talon
 
 
 if __name__ == "__main__":

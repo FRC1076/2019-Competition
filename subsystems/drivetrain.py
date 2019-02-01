@@ -3,8 +3,8 @@ import wpilib.drive
 from wpilib import DoubleSolenoid
 
 class Drivetrain:
-    def __init__(self, left, right, gyro, encoder_motor=None):
-        self.encoder_motor = encoder_motor
+    def __init__(self, left, right, gyro):
+        
         self.robot_drive = wpilib.drive.DifferentialDrive(left, right)
         self.gyro = gyro
 
