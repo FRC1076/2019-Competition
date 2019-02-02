@@ -46,9 +46,9 @@ The following are electrical and hardware requirements as specified by software 
      Elevator:     7, 8     (encoder breakout from 7)
      Ball Intake   9
        
-     Pneumatics:
+     Pneumatics: (contract, extend)
             1,2:     Hatchgrabber
-            3,4:     Deploy Intake forward
+            3,4:     Deploy Intake forward 
             5,6:     LeftFront piston
             7,8:     RightFront piston
             9,10:    RightRear piston
