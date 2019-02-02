@@ -33,7 +33,7 @@ class Robot(wpilib.IterativeRobot):
   
     
         (x,y) = deadzone2(DEADZONE, (goal_rotate, goal_forward))
-def is_in_deadzone(radius, location):
+def is_in_circular_deadzone(radius, location):
     (x,y) = location
     """
     #if in the function is in deadzone it will return true.
@@ -41,7 +41,7 @@ def is_in_deadzone(radius, location):
     """
     return(x**2+y**2) <= (radius**2)
   
-def deadzone2(radius, location):
+def circular_deadzone(radius, location):
     """
     # if in the deazone this function will return 0,0.
     """
