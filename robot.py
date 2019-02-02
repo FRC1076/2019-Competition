@@ -4,6 +4,7 @@ import ctre
 from subsystems.drivetrain import Drivetrain
 from subsystems.elevator import Elevator
 from subsystems.hatchGrabber import Grabber
+from subsystems.lift import Lift
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
 from navx import AHRS
@@ -20,9 +21,22 @@ RIGHT_MASTER_ID = 4
 RIGHT_SLAVE_1_ID = 5
 RIGHT_SLAVE_2_ID = 6
 
-#HATCH GRABBER PISTON IDs(pneumatics)
+#HATCH GRABBER PISTON IDs
 RETRACT_ID = 1
 EXTEND_ID = 2
+
+#LIFT PISTON IDs
+FRONT_LEFT_RETRACT = 5
+FRONT_LEFT_EXTEND = 6
+
+FRONT_RIGHT_RETRACT = 7
+FRONT_RIGHT_EXTEND = 8
+
+BACK_LEFT_RETRACT = 11
+BACK_LEFT_EXTEND = 12
+
+BACK_RIGHT_RETRACT = 9
+BACK_RIGHT_EXTEND = 10
 
 #ELEVATOR ID
 ELEVATOR_ID_MASTER = 7
@@ -31,7 +45,6 @@ ELEVATOR_ID_SLAVE = 8
 #ELEVATOR PID IDs
 MIN_ELEVATOR_RANGE = 0
 MAX_ELEVATOR_RANGE = 200
-
 
 
 class MyRobot(wpilib.IterativeRobot):
@@ -53,6 +66,19 @@ class MyRobot(wpilib.IterativeRobot):
             retract = wpilib.Solenoid(RETRACT_ID),
             extend = wpilib.Solenoid(EXTEND_ID)
             )
+
+        #LIFT
+        self.lift = Lift(
+            front_left_retract = wpilib.Solenoid(FRONT_LEFT_RETRACT),
+            front_left_extend = wpilib.Solenoid(FRONT_LEFT_EXTEND),
+            front_right_retract = wpilib.Solenoid(FRONT_RIGHT_RETRACT),
+            front_right_extend = wpilib.Solenoid(FRONT_RIGHT_EXTEND),
+            back_left_retract = wpilib.Solenoid(BACK_LEFT_RETRACT), 
+            back_left_extend = wpilib.Solenoid(BACK_LEFT_EXTEND),
+            back_right_retract = wpilib.Solenoid(BACK_LEFT_RETRACT), 
+            back_right_extend = wpilib.Solenoid(BACK_LEFT_EXTEND)
+        )
+            
         
         #ELEVATOR
         elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
