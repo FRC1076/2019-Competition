@@ -59,7 +59,6 @@ class MyRobot(wpilib.IterativeRobot):
         """Executed at the start of teleop mode"""
         self.pistons_activated = False
         self.forward = 0
-
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
@@ -125,7 +124,12 @@ def createMasterAndSlaves(MASTER, slave1, slave2):
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
         return 0
-    return val
+    elif val < (0):
+        x = ((abs(val) - deadzone)/(1-deadzone))
+        return (-x)
+    else:
+        x = ((val - deadzone)/(1-deadzone))
+        return (x)
 
 
 def sign(number):
