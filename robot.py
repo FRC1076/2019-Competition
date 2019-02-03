@@ -1,4 +1,5 @@
 import math
+import time
 import wpilib
 import ctre 
 from subsystems.drivetrain import Drivetrain
@@ -59,6 +60,10 @@ ELEVATOR_ID_SLAVE = 8
 #ELEVATOR PID IDs
 MIN_ELEVATOR_RANGE = 0
 MAX_ELEVATOR_RANGE = 200
+#Match time for timer
+
+#Teleop duration
+TELEOP_DURATION_SECONDS = 10
 
 class MyRobot(wpilib.IterativeRobot):
     def robotInit(self):
@@ -113,6 +118,11 @@ class MyRobot(wpilib.IterativeRobot):
         """Executed at the start of teleop mode"""
         self.pistons_activated = False
         self.forward = 0
+        self.matchtimer = MatchTimer(TELEOP_DURATION_SECONDS)
+        
+        
+            
+        
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
@@ -192,6 +202,23 @@ class MyRobot(wpilib.IterativeRobot):
         if release_pistons:
             self.lift.lower_down()
 
+        if self.matchtimer.AreWeThereYet():
+            self.lift.raise_all()
+             #do something special
+
+class MatchTimer:
+
+    def __init__(self, duration):
+        self.starttime = time.time()
+        self.duration = TELEOP_DURATION_SECONDS
+
+    def endTime(self): 
+        self.end_time = (self.starttime + self.duration)
+        return(self.end_time)
+    def AreWeThereYet(self):
+        now = time.time()
+        return self.endTime() >= now
+        
 def createMasterAndSlaves(MASTER, slave1, slave2):
     '''
     First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
@@ -268,6 +295,6 @@ def sign(number):
     else:
         return -1
 
-
 if __name__ == "__main__":
     wpilib.run(MyRobot)
+    
