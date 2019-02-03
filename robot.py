@@ -5,6 +5,7 @@ from subsystems.drivetrain import Drivetrain
 from subsystems.elevator import Elevator
 from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
+from subsystems.extendPiston import extendPiston
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
 from navx import AHRS
@@ -25,6 +26,9 @@ RIGHT_SLAVE_2_ID = 6
 #HATCH GRABBER PISTON IDs (solenoid)
 RETRACT_ID = 0
 EXTEND_ID = 1
+
+PISTON_EXTEND_ID = 2
+PISTON_RETRACT_ID = 3
 '''
 Pneumatics: (contract, extend)
             1,2:     Hatchgrabber
@@ -74,6 +78,9 @@ class MyRobot(wpilib.IterativeRobot):
         #HATCH GRABBER
         self.grabber = Grabber(
             hatch = wpilib.DoubleSolenoid(1, EXTEND_ID, RETRACT_ID))
+
+        #EXTEND HATCH GRABBER 
+        self.piston = extendPiston(piston=wpilib.DoubleSolenoid(1, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
 
         #LIFT
         self.lift = Lift(
