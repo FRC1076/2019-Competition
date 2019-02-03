@@ -45,10 +45,8 @@ The following are electrical and hardware requirements as specified by software 
      Ball Intake   9
        
      Pneumatics: (module: extend, retract)
-            1: 0,1:     Hatchgrabber
-            1: 2,3:     Deploy Intake forward
-            0: 0,1:     LeftFront piston
-            0: 2,3:     RightFront piston
-            0: 4,5:     RightRear piston
-            0: 6,7:     LeftRear piston
+            0: 0,1:     Front pistons (ganged left and right)
+            0: 2,3:     Rear pistons (ganged left and right)
+            0: 4,5:     Deploy Intake
+            0: 6,7:     Hatchgrabber
   
