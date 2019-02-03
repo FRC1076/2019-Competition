@@ -31,17 +31,23 @@ PISTON_EXTEND_ID = 4
 PISTON_RETRACT_ID = 5
 
 #LIFT PISTON IDs (solenoid)
-FRONT_LEFT_RETRACT = 0
-FRONT_LEFT_EXTEND = 1
+CENTER_LEFT = 0
+CENTER_RIGHT = 1
 
-FRONT_RIGHT_RETRACT = 2
-FRONT_RIGHT_EXTEND = 3
+BACK_LEFT = 2
+BACK_RIGHT = 3
 
-BACK_LEFT_RETRACT = 0
-BACK_LEFT_EXTEND = 1
+# FRONT_LEFT_RETRACT = 0
+# FRONT_LEFT_EXTEND = 1
 
-BACK_RIGHT_RETRACT = 2
-BACK_RIGHT_EXTEND = 3
+# FRONT_RIGHT_RETRACT = 2
+# FRONT_RIGHT_EXTEND = 3
+
+# BACK_LEFT_RETRACT = 0
+# BACK_LEFT_EXTEND = 1
+
+# BACK_RIGHT_RETRACT = 2
+# BACK_RIGHT_EXTEND = 3
 
 
 #ELEVATOR ID (talon)
@@ -75,13 +81,14 @@ class MyRobot(wpilib.IterativeRobot):
         self.piston = extendPiston(piston=wpilib.DoubleSolenoid(4, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
 
         #LIFT
+        '''
+        The lift is being controlled by four pistons, but two doublesolenoids due to electrical chaining 4 together to make
+        space on the solenoid module.
+        '''
         self.lift = Lift(
-            front_left = wpilib.DoubleSolenoid(0, FRONT_LEFT_EXTEND, FRONT_LEFT_RETRACT),
-            front_right = wpilib.DoubleSolenoid(1, FRONT_RIGHT_EXTEND, FRONT_RIGHT_RETRACT),
-            back_left = wpilib.DoubleSolenoid(2, BACK_LEFT_EXTEND, BACK_LEFT_RETRACT), 
-            back_right = wpilib.DoubleSolenoid(3, BACK_RIGHT_EXTEND, BACK_RIGHT_RETRACT) 
+                center = wpilib.DoubleSolenoid(0, CENTER_LEFT, CENTER_RIGHT), 
+                back = wpilib.DoubleSolenoid(0, BACK_LEFT, BACK_RIGHT)
         )
-            
         
         #ELEVATOR
         elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
@@ -130,6 +137,13 @@ class MyRobot(wpilib.IterativeRobot):
 
 
         self.drivetrain.arcade_drive(self.forward, rotation_value)
+
+        #4BAR CONTROL
+        '''
+        Left bumper = retract intake (piston in)
+        Right bumper = extend intake beyond frame perimeter (piston out)
+        '''
+        if 
 
         #ELEVATOR CONTROL
         elevateToHeight = False
