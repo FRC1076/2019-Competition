@@ -13,7 +13,7 @@ from hal_impl.data import hal_data
 LEFT = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT = wpilib.interfaces.GenericHID.Hand.kRight
 
-#DRIVETRAIN IDs
+#DRIVETRAIN IDs (talon and victor)
 LEFT_MASTER_ID = 1
 LEFT_SLAVE_1_ID = 2
 LEFT_SLAVE_2_ID = 3
@@ -22,7 +22,7 @@ RIGHT_MASTER_ID = 4
 RIGHT_SLAVE_1_ID = 5
 RIGHT_SLAVE_2_ID = 6
 
-#HATCH GRABBER PISTON IDs
+#HATCH GRABBER PISTON IDs (solenoid)
 RETRACT_ID = 1
 EXTEND_ID = 2
 '''
@@ -34,21 +34,21 @@ Pneumatics: (contract, extend)
             9,10:    RightRear piston
             11,12:   LeftRear piston
             '''
-#LIFT PISTON IDs
-FRONT_LEFT_RETRACT = 5
-FRONT_LEFT_EXTEND = 6
+#LIFT PISTON IDs (solenoid)
+FRONT_LEFT_RETRACT = 1
+FRONT_LEFT_EXTEND = 2
 
-FRONT_RIGHT_RETRACT = 7
-FRONT_RIGHT_EXTEND = 8
+FRONT_RIGHT_RETRACT = 3
+FRONT_RIGHT_EXTEND = 4
 
-BACK_LEFT_RETRACT = 11
-BACK_LEFT_EXTEND = 12
+BACK_LEFT_RETRACT = 5
+BACK_LEFT_EXTEND = 6
 
-BACK_RIGHT_RETRACT = 9
-BACK_RIGHT_EXTEND = 10
+BACK_RIGHT_RETRACT = 7
+BACK_RIGHT_EXTEND = 8
 
 
-#ELEVATOR ID
+#ELEVATOR ID (talon)
 ELEVATOR_ID_MASTER = 7
 ELEVATOR_ID_SLAVE = 8
 
@@ -73,16 +73,14 @@ class MyRobot(wpilib.IterativeRobot):
 
         #HATCH GRABBER
         self.grabber = Grabber(
-            retract = wpilib.Solenoid(RETRACT_ID),
-            extend = wpilib.Solenoid(EXTEND_ID)
-            )
+            hatch = wpilib.DoubleSolenoid(1, EXTEND_ID, RETRACT_ID)
 
         #LIFT
         self.lift = Lift(
-            front_left = wpilib.DoubleSolenoid(FRONT_LEFT_EXTEND, FRONT_LEFT_RETRACT),
-            front_right = wpilib.DoubleSolenoid(FRONT_RIGHT_EXTEND, FRONT_RIGHT_RETRACT),
-            back_left = wpilib.DoubleSolenoid(BACK_LEFT_EXTEND, BACK_LEFT_RETRACT), 
-            back_right = wpilib.DoubleSolenoid(BACK_RIGHT_EXTEND, BACK_RIGHT_RETRACT) 
+            front_left = wpilib.DoubleSolenoid(0, FRONT_LEFT_EXTEND, FRONT_LEFT_RETRACT),
+            front_right = wpilib.DoubleSolenoid(0, FRONT_RIGHT_EXTEND, FRONT_RIGHT_RETRACT),
+            back_left = wpilib.DoubleSolenoid(0, BACK_LEFT_EXTEND, BACK_LEFT_RETRACT), 
+            back_right = wpilib.DoubleSolenoid(0, BACK_RIGHT_EXTEND, BACK_RIGHT_RETRACT) 
         )
             
         
@@ -140,7 +138,10 @@ class MyRobot(wpilib.IterativeRobot):
         #If proximity sensor = 0
             #self.encoder.reset()
 
-        if (self.operator.getAButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
+        if self.operator.getTriggerAxis(LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0)):
+            elevator.go_up()
+
+        elif (self.operator.getAButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
             self.command.setSetpoint(LOW_CARGO_VALUE)
             elevateToHeight = True
             print("low cargo value")
@@ -180,7 +181,7 @@ class MyRobot(wpilib.IterativeRobot):
         #END GAME 
 
         activate_pistons = self.operator.getStartButton() and self.driver.getStartButton()
-        release_pistons = self.operator.getBackButtonReleased() or self.driver.getStartButtonReleased()
+        release_pistons = self.operator.getBackButton() and self.driver.getStartButton()
 
         if activate_pistons:
             self.lift.raise_up()

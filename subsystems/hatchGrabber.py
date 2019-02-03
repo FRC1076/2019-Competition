@@ -1,26 +1,16 @@
 from wpilib import DoubleSolenoid
 
 class Grabber:
-    def __init__(self, retract, extend):
-        self.out = SolenoidPair(retract, extend)
+    stateExtend = DoubleSolenoid.Value.kForward
+    stateRetract = DoubleSolenoid.Value.kReverse
+    def __init__(self, hatch):
+        self.hatch = hatch
 
     def lower_down(self):
-        self.out.retract()
+        self.hatch.set(Grabber.stateRetract)
     
     def raise_up(self):
-        self.out.extend()
+        self.hatch.set(Grabber.stateExtend)
 
-class SolenoidPair:
-    def __init__(self, retract, extend):
-        self._retract = retract
-        self._extend = extend 
-    
-    def retract(self):
-        self._retract.set(True)
-        self._extend.set(False)
-
-    def extend(self):
-        self._extend.set(True)
-        self._retract.set(False)
 
 
