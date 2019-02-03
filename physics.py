@@ -10,7 +10,7 @@
 #
 
 
-from pyfrc.physics import motor_cfgs, tankmodel
+from pyfrc.physics import motor_cfgs, tankmodel, motion
 from pyfrc.physics.units import units
 
 class PhysicsEngine(object):
@@ -28,7 +28,6 @@ class PhysicsEngine(object):
 
         self.physics_controller = physics_controller
         self.position = 0
-        self.motion = pyfrc.physics.motion.LinearMotion('Linear Motion', 2, 360, 9)
 
         # Change these parameters to fit your robot!
         bumper_width = 3.25 * units.inch
@@ -46,6 +45,8 @@ class PhysicsEngine(object):
         )
         # fmt: on
 
+        self.motion = motion.LinearMotion('Motion', 2, 360, 20, -20)
+
     def update_sim(self, hal_data, now, tm_diff):
         """
             Called when the simulation parameters for the program need to be
@@ -57,10 +58,11 @@ class PhysicsEngine(object):
         """
 
         # Simulate the drivetrain
-        l_motor = hal_data["pwm"][9]["value"]
-        r_motor = hal_data["pwm"][10]["value"]
-        hal_data['encoder'][0]['value'] = self.motion.compute(l_motor)
-        # print("hal ", hal_data["pwm"][1]["value"], " ", hal_data["pwm"][2]["value"])
+        l_motor = hal_data["CAN"][1]["value"]
+        r_motor = hal_data["CAN"][4]["value"]
 
         x, y, angle = self.drivetrain.get_distance(l_motor, r_motor, tm_diff)
         self.physics_controller.distance_drive(x, y, angle)
+
+		# Linear motion for encoder
+        hal_data['encoder'][0]['value'] = self.motion.compute(l_motor, tm_diff)
