@@ -1,5 +1,5 @@
                                                          Feb 3, 2019
-                                                         Version 1.1
+                                                         Version 1.2
 
 https://github.com/FRC1076/2019-Competition/edit/master/mandatory-robot.txt
 Printed versions of this document are considered obsolete.
