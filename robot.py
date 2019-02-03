@@ -8,6 +8,7 @@ from subsystems.lift import Lift
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
 from navx import AHRS
+from hal_impl.data import hal_data
 
 LEFT = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT = wpilib.interfaces.GenericHID.Hand.kRight
@@ -24,7 +25,15 @@ RIGHT_SLAVE_2_ID = 6
 #HATCH GRABBER PISTON IDs
 RETRACT_ID = 1
 EXTEND_ID = 2
-
+'''
+Pneumatics: (contract, extend)
+            1,2:     Hatchgrabber
+            3,4:     Deploy Intake forward 
+            5,6:     LeftFront piston
+            7,8:     RightFront piston
+            9,10:    RightRear piston
+            11,12:   LeftRear piston
+            '''
 #LIFT PISTON IDs
 FRONT_LEFT_RETRACT = 5
 FRONT_LEFT_EXTEND = 6
@@ -37,6 +46,7 @@ BACK_LEFT_EXTEND = 12
 
 BACK_RIGHT_RETRACT = 9
 BACK_RIGHT_EXTEND = 10
+
 
 #ELEVATOR ID
 ELEVATOR_ID_MASTER = 7
@@ -69,14 +79,10 @@ class MyRobot(wpilib.IterativeRobot):
 
         #LIFT
         self.lift = Lift(
-            front_left_retract = wpilib.Solenoid(FRONT_LEFT_RETRACT),
-            front_left_extend = wpilib.Solenoid(FRONT_LEFT_EXTEND),
-            front_right_retract = wpilib.Solenoid(FRONT_RIGHT_RETRACT),
-            front_right_extend = wpilib.Solenoid(FRONT_RIGHT_EXTEND),
-            back_left_retract = wpilib.Solenoid(BACK_LEFT_RETRACT), 
-            back_left_extend = wpilib.Solenoid(BACK_LEFT_EXTEND),
-            back_right_retract = wpilib.Solenoid(BACK_LEFT_RETRACT), 
-            back_right_extend = wpilib.Solenoid(BACK_LEFT_EXTEND)
+            front_left = wpilib.DoubleSolenoid(FRONT_LEFT_EXTEND, FRONT_LEFT_RETRACT),
+            front_right = wpilib.DoubleSolenoid(FRONT_RIGHT_EXTEND, FRONT_RIGHT_RETRACT),
+            back_left = wpilib.DoubleSolenoid(BACK_LEFT_EXTEND, BACK_LEFT_RETRACT), 
+            back_right = wpilib.DoubleSolenoid(BACK_RIGHT_EXTEND, BACK_RIGHT_RETRACT) 
         )
             
         
@@ -91,9 +97,10 @@ class MyRobot(wpilib.IterativeRobot):
         '''
         self.command = None
         self.ahrs = AHRS.create_spi()
-        #self.encoder = wpilib.Encoder()
+        self.encoder = fakeEncoder()
         
         self.command = elevatorAttendant(self.encoder, 0, 100, -1, 1)
+
 
     def robotPeriodic(self):
         pass
@@ -129,31 +136,32 @@ class MyRobot(wpilib.IterativeRobot):
 
         #ELEVATOR CONTROL
         elevateToHeight = False
+
         #If proximity sensor = 0
             #self.encoder.reset()
 
         if (self.operator.getAButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
             self.command.setSetpoint(LOW_CARGO_VALUE)
-                elevateToHeight = True
+            elevateToHeight = True
             print("low cargo value")
 
         elif self.operator.getAButton():
             self.command.setSetpoint(LOW_HATCH_VALUE)
             elevateToHeight = True
 
-        elif self.operator.getBButton():
+        elif (self.operator.getBButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
             self.command.setSetpoint(MEDIUM_CARGO_VALUE)
             elevateToHeight = True
 
-        elif self.operator.getAButton():
+        elif self.operator.getBButton():
             self.command.setSetpoint(MEDIUM_HATCH_VALUE)
             elevateToHeight = True
         
-        elif self.operator.getBButton():
+        elif self.operator.getXButton():
             self.command.setSetpoint(HIGH_CARGO_VALUE)
             elevateToHeight = True
 
-        elif self.operator.getRawButton(4):
+        elif (self.operator.getXButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
             self.command.setSetpoint(HIGH_HATCH_VALUE)
             elevateToHeight = True
         
@@ -195,15 +203,15 @@ def createMasterAndSlaves(MASTER, slave1, slave2):
     return master_talon
 
 class elevatorAttendant:
-    def __init__(self, encoder, lowInput, highInput, lowOutput, highOutput)
+    def __init__(self, encoder, lowInput, highInput, lowOutput, highOutput):
         self.encoder = encoder
 
         kP = 0.01
         kI = 0.00
         kD = 0.00
-        self.pid = wpilib.PIDController(kP, kI, kD, source = encoder, output = self)
+        self.pid = wpilib.PIDController(kP, kI, kD, source=encoder, output=self)
         self.pid.setInputRange(lowInput, highInput)
-        self.pid.setOutputRange(lowOutputm highOutput)
+        self.pid.setOutputRange(lowOutput, highOutput)
 
     def pidWrite(self, output):
         self.elevateToHeightRate = output
@@ -220,33 +228,20 @@ class elevatorAttendant:
     def setSetpoint(self, height):
         self.pid.setSetpoint(height)
 
-
-def guitarElevatorControl(self):
-    '''
-    Takes input from the guitar hero controller and uses setpoints to move the elevator up and down to certain points
-    '''
-    #Need to finish the hatch plate values, cargo values, witht he correct buttons
-    
-    if elevateToHeight:
-        self.elevatorAttendant.enable()
-        currentRotationRate = self.elevateToHeightRate
-    else:
-        self.elevatorAttendant.disable()
-        currentRotationRate = self.stick.getTwist()
-
+class fakeEncoder:
+    def pidGet(self):
+        return hal_data['encoder'][0]['value']
 
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
         return 0
     return val
 
-
 def sign(number):
     if number > 0:
         return 1
     else:
         return -1
-
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)

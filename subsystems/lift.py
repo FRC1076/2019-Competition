@@ -1,39 +1,44 @@
 import wpilib 
 from wpilib import DoubleSolenoid
 
-class Lift:
-    def __init__(self, 
-    front_left_retract, front_left_extend,
-    front_right_retract, front_right_extend,
-    back_left_retract, back_left_extend,
-    back_right_retract, back_right_extend):
 
-        self.front_left = SolenoidPair(front_left_retract, front_left_extend)
-        self.front_right = SolenoidPair(front_right_retract, front_right_extend)
-        self.back_left = SolenoidPair(back_left_retract, back_left_extend)
-        self.back_right = SolenoidPair(back_right_retract, back_right_extend)
+
+class Lift:
+
+    stateExtend = DoubleSolenoid.Value.kForward
+    stateRetract = DoubleSolenoid.Value.kReverse
+
+    def __init__(self, front_left, front_right, back_left, back_right):
+ 
+        self.front_left = front_left
+        self.front_right = front_right
+        self.back_left = back_left
+        self.back_right = back_right
+
+    def raise_left(self):
+        self.front_left.set(Lift.stateExtend)
+        self.back_left.set(Lift.stateExtend)
+
+    def raise_right(self):
+        self.front_right.set(Lift.stateExtend)
+        self.back_right.set(Lift.stateExtend)
+
+    def lower_left(self):
+        self.front_left.set(Lift.stateRetract)
+        self.back_left.set(Lift.stateRetract)
+    
+    def lower_right(self):
+        self.front_right.set(Lift.stateRetract)
+        self.back_right.set(Lift.stateRetract)
 
     def lower_all(self):
-        self.front_left.retract()
-        self.front_right.retract()
-        self.back_left.retract()
-        self.back_right.retract()
+        self.front_left.set(Lift.stateRetract)
+        self.front_right.set(Lift.stateRetract)
+        self.back_left.set(Lift.stateRetract)
+        self.back_right.set(Lift.stateRetract)
 
     def raise_all(self):
-        self.front_left.extend()
-        self.front_right.extend()
-        self.back_left.extend()
-        self.back_right.extend()
-
-class SolenoidPair:
-    def __init__(self, retract, extend):
-        self._retract = retract
-        self._extend = extend
-
-    def retract(self):
-        self._retract.set(True)
-        self._extend.set(False)
-
-    def extend(self):
-        self._extend.set(True)
-        self._retract.set(False)
+        self.front_left.set(Lift.stateExtend)
+        self.front_right.set(Lift.stateExtend)
+        self.back_left.set(Lift.stateExtend)
+        self.back_right.set(Lift.stateExtend)
