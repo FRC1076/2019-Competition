@@ -23,8 +23,8 @@ RIGHT_SLAVE_1_ID = 5
 RIGHT_SLAVE_2_ID = 6
 
 #HATCH GRABBER PISTON IDs (solenoid)
-RETRACT_ID = 1
-EXTEND_ID = 2
+RETRACT_ID = 0
+EXTEND_ID = 1
 '''
 Pneumatics: (contract, extend)
             1,2:     Hatchgrabber
@@ -35,17 +35,17 @@ Pneumatics: (contract, extend)
             11,12:   LeftRear piston
             '''
 #LIFT PISTON IDs (solenoid)
-FRONT_LEFT_RETRACT = 1
-FRONT_LEFT_EXTEND = 2
+FRONT_LEFT_RETRACT = 0
+FRONT_LEFT_EXTEND = 1
 
-FRONT_RIGHT_RETRACT = 3
-FRONT_RIGHT_EXTEND = 4
+FRONT_RIGHT_RETRACT = 2
+FRONT_RIGHT_EXTEND = 3
 
-BACK_LEFT_RETRACT = 5
-BACK_LEFT_EXTEND = 6
+BACK_LEFT_RETRACT = 4
+BACK_LEFT_EXTEND = 5
 
-BACK_RIGHT_RETRACT = 7
-BACK_RIGHT_EXTEND = 8
+BACK_RIGHT_RETRACT = 6
+BACK_RIGHT_EXTEND = 7
 
 
 #ELEVATOR ID (talon)
@@ -73,7 +73,7 @@ class MyRobot(wpilib.IterativeRobot):
 
         #HATCH GRABBER
         self.grabber = Grabber(
-            hatch = wpilib.DoubleSolenoid(1, EXTEND_ID, RETRACT_ID)
+            hatch = wpilib.DoubleSolenoid(1, EXTEND_ID, RETRACT_ID))
 
         #LIFT
         self.lift = Lift(
@@ -138,12 +138,11 @@ class MyRobot(wpilib.IterativeRobot):
         #If proximity sensor = 0
             #self.encoder.reset()
 
-        if self.operator.getTriggerAxis(LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0)):
-            elevator.go_up()
-
-        elif (self.operator.getAButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
+        
+        if (self.operator.getAButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
             self.command.setSetpoint(LOW_CARGO_VALUE)
             elevateToHeight = True
+
             print("low cargo value")
 
         elif self.operator.getAButton():
@@ -232,6 +231,9 @@ class elevatorAttendant:
 class fakeEncoder:
     def pidGet(self):
         return hal_data['encoder'][0]['value']
+
+    def getPIDSourceType(self):
+        return PIDSourceType.kDisplacement
 
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
