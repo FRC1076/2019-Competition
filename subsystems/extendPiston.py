@@ -1,16 +1,13 @@
 from wpilib import DoubleSolenoid
 
-class Grabber:
+class extendPiston():
     stateExtend = DoubleSolenoid.Value.kForward
     stateRetract = DoubleSolenoid.Value.kReverse
-    def __init__(self, hatch):
-        self.hatch = hatch
+    def __init__(self, piston):
+        self.piston = piston
 
     def lower_down(self):
-        self.hatch.set(Grabber.stateRetract)
+        self.piston.set(extendPiston.stateRetract)
     
     def raise_up(self):
-        self.hatch.set(Grabber.stateExtend)
-
-
-
+        self.piston.set(extendPiston.stateExtend)

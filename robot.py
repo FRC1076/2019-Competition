@@ -4,13 +4,17 @@ import ctre
 from subsystems.drivetrain import Drivetrain
 from subsystems.elevator import Elevator
 from subsystems.hatchGrabber import Grabber
+from subsystems.lift import Lift
+from subsystems.extendPiston import extendPiston
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
+from navx import AHRS
+from hal_impl.data import hal_data
 
 LEFT = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT = wpilib.interfaces.GenericHID.Hand.kRight
 
-#DRIVETRAIN IDs
+#DRIVETRAIN IDs (talon and victor)
 LEFT_MASTER_ID = 1
 LEFT_SLAVE_1_ID = 2
 LEFT_SLAVE_2_ID = 3
@@ -19,14 +23,42 @@ RIGHT_MASTER_ID = 4
 RIGHT_SLAVE_1_ID = 5
 RIGHT_SLAVE_2_ID = 6
 
+#HATCH GRABBER PISTON IDs (solenoid)
+RETRACT_ID = 0
+EXTEND_ID = 1
 
-#HATCH GRABBER PISTON IDs(pneumatics)
-RETRACT_ID = 1
-EXTEND_ID = 2
+PISTON_EXTEND_ID = 2
+PISTON_RETRACT_ID = 3
+'''
+Pneumatics: (contract, extend)
+            1,2:     Hatchgrabber
+            3,4:     Deploy Intake forward 
+            5,6:     LeftFront piston
+            7,8:     RightFront piston
+            9,10:    RightRear piston
+            11,12:   LeftRear piston
+            '''
+#LIFT PISTON IDs (solenoid)
+FRONT_LEFT_RETRACT = 0
+FRONT_LEFT_EXTEND = 1
 
-#ELEVATOR ID
+FRONT_RIGHT_RETRACT = 2
+FRONT_RIGHT_EXTEND = 3
+
+BACK_LEFT_RETRACT = 4
+BACK_LEFT_EXTEND = 5
+
+BACK_RIGHT_RETRACT = 6
+BACK_RIGHT_EXTEND = 7
+
+
+#ELEVATOR ID (talon)
 ELEVATOR_ID_MASTER = 7
 ELEVATOR_ID_SLAVE = 8
+
+#ELEVATOR PID IDs
+MIN_ELEVATOR_RANGE = 0
+MAX_ELEVATOR_RANGE = 200
 
 class MyRobot(wpilib.IterativeRobot):
     def robotInit(self):
@@ -44,14 +76,36 @@ class MyRobot(wpilib.IterativeRobot):
 
         #HATCH GRABBER
         self.grabber = Grabber(
-            retract = wpilib.Solenoid(RETRACT_ID),
-            extend = wpilib.Solenoid(EXTEND_ID)
-            )
+            hatch = wpilib.DoubleSolenoid(1, EXTEND_ID, RETRACT_ID))
+
+        #EXTEND HATCH GRABBER 
+        self.piston = extendPiston(piston=wpilib.DoubleSolenoid(1, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
+
+        #LIFT
+        self.lift = Lift(
+            front_left = wpilib.DoubleSolenoid(0, FRONT_LEFT_EXTEND, FRONT_LEFT_RETRACT),
+            front_right = wpilib.DoubleSolenoid(0, FRONT_RIGHT_EXTEND, FRONT_RIGHT_RETRACT),
+            back_left = wpilib.DoubleSolenoid(0, BACK_LEFT_EXTEND, BACK_LEFT_RETRACT), 
+            back_right = wpilib.DoubleSolenoid(0, BACK_RIGHT_EXTEND, BACK_RIGHT_RETRACT) 
+        )
+            
         
         #ELEVATOR
         elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
        
+        #ELEVATOR PID
+        '''
+        
+
+        '''
+        self.command = None
+        self.ahrs = AHRS.create_spi()
+        self.encoder = fakeEncoder()
+        
+        self.command = elevatorAttendant(self.encoder, 0, 100, -1, 1)
+
+
     def robotPeriodic(self):
         pass
 
@@ -84,6 +138,39 @@ class MyRobot(wpilib.IterativeRobot):
         self.drivetrain.arcade_drive(self.forward, rotation_value)
 
         #ELEVATOR CONTROL
+        elevateToHeight = False
+
+        #If proximity sensor = 0
+            #self.encoder.reset()
+
+        
+        if (self.operator.getAButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
+            self.command.setSetpoint(LOW_CARGO_VALUE)
+            elevateToHeight = True
+
+            print("low cargo value")
+
+        elif self.operator.getAButton():
+            self.command.setSetpoint(LOW_HATCH_VALUE)
+            elevateToHeight = True
+
+        elif (self.operator.getBButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
+            self.command.setSetpoint(MEDIUM_CARGO_VALUE)
+            elevateToHeight = True
+
+        elif self.operator.getBButton():
+            self.command.setSetpoint(MEDIUM_HATCH_VALUE)
+            elevateToHeight = True
+        
+        elif self.operator.getXButton():
+            self.command.setSetpoint(HIGH_CARGO_VALUE)
+            elevateToHeight = True
+
+        elif (self.operator.getXButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
+            self.command.setSetpoint(HIGH_HATCH_VALUE)
+            elevateToHeight = True
+        
+
         '''
         Guitar Hero controls
         1: Hatch Panel Low. 1+Wammy: Cargo Low (1, z!=0)
@@ -98,7 +185,7 @@ class MyRobot(wpilib.IterativeRobot):
         #END GAME 
 
         activate_pistons = self.operator.getStartButton() and self.driver.getStartButton()
-        release_pistons = self.operator.getBackButtonReleased() or self.driver.getStartButtonReleased()
+        release_pistons = self.operator.getBackButton() and self.driver.getStartButton()
 
         if activate_pistons:
             self.lift.raise_up()
@@ -120,6 +207,49 @@ def createMasterAndSlaves(MASTER, slave1, slave2):
 
     return master_talon
 
+class elevatorAttendant:
+    def __init__(self, encoder, lowInput, highInput, lowOutput, highOutput):
+        self.encoder = encoder
+
+        kP = 0.01
+        kI = 0.00
+        kD = 0.00
+        self.pid = wpilib.PIDController(kP, kI, kD, source=encoder, output=self)
+        self.pid.setInputRange(lowInput, highInput)
+        self.pid.setOutputRange(lowOutput, highOutput)
+
+    def pidWrite(self, output):
+        self.elevateToHeightRate = output
+    
+    def getHeightRate(self):
+        return self.elevateToHeightRate
+
+    def turn(self):
+        self.pid.enable()
+    
+    def stop(self):
+        self.pid.disable()
+
+    def setSetpoint(self, height):
+        self.pid.setSetpoint(height)
+
+class fakeEncoder:
+    def pidGet(self):
+        return hal_data['encoder'][0]['value']
+
+    def getPIDSourceType(self):
+        return PIDSourceType.kDisplacement
+
+def deadzone(val, deadzone):
+    if abs(val) < deadzone:
+        return 0
+    return val
+
+def sign(number):
+    if number > 0:
+        return 1
+    else:
+        return -1
 
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
