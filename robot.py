@@ -58,7 +58,6 @@ ELEVATOR_ID_SLAVE = 8
 MIN_ELEVATOR_RANGE = 0
 MAX_ELEVATOR_RANGE = 200
 
-
 class MyRobot(wpilib.IterativeRobot):
     def robotInit(self):
         #assigns driver as controller 0 and operator as controller 1
@@ -113,7 +112,6 @@ class MyRobot(wpilib.IterativeRobot):
         """Executed at the start of teleop mode"""
         self.pistons_activated = False
         self.forward = 0
-
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
@@ -258,6 +256,24 @@ def sign(number):
         return 1
     else:
         return -1
+
+def deadzone(val, deadzone):
+    if abs(val) < deadzone:
+        return 0
+    elif val < (0):
+        x = ((abs(val) - deadzone)/(1-deadzone))
+        return (-x)
+    else:
+        x = ((val - deadzone)/(1-deadzone))
+        return (x)
+
+
+def sign(number):
+    if number > 0:
+        return 1
+    else:
+        return -1
+
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)
