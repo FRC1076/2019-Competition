@@ -24,20 +24,12 @@ RIGHT_SLAVE_1_ID = 5
 RIGHT_SLAVE_2_ID = 6
 
 #HATCH GRABBER PISTON IDs (solenoid)
-RETRACT_ID = 0
-EXTEND_ID = 1
+RETRACT_ID = 6
+EXTEND_ID = 7
 
-PISTON_EXTEND_ID = 2
-PISTON_RETRACT_ID = 3
-'''
-Pneumatics: (contract, extend)
-            1,2:     Hatchgrabber
-            3,4:     Deploy Intake forward 
-            5,6:     LeftFront piston
-            7,8:     RightFront piston
-            9,10:    RightRear piston
-            11,12:   LeftRear piston
-            '''
+PISTON_EXTEND_ID = 4
+PISTON_RETRACT_ID = 5
+
 #LIFT PISTON IDs (solenoid)
 FRONT_LEFT_RETRACT = 0
 FRONT_LEFT_EXTEND = 1
@@ -45,11 +37,11 @@ FRONT_LEFT_EXTEND = 1
 FRONT_RIGHT_RETRACT = 2
 FRONT_RIGHT_EXTEND = 3
 
-BACK_LEFT_RETRACT = 4
-BACK_LEFT_EXTEND = 5
+BACK_LEFT_RETRACT = 0
+BACK_LEFT_EXTEND = 1
 
-BACK_RIGHT_RETRACT = 6
-BACK_RIGHT_EXTEND = 7
+BACK_RIGHT_RETRACT = 2
+BACK_RIGHT_EXTEND = 3
 
 
 #ELEVATOR ID (talon)
@@ -77,17 +69,17 @@ class MyRobot(wpilib.IterativeRobot):
 
         #HATCH GRABBER
         self.grabber = Grabber(
-            hatch = wpilib.DoubleSolenoid(1, EXTEND_ID, RETRACT_ID))
+            hatch = wpilib.DoubleSolenoid(5, EXTEND_ID, RETRACT_ID))
 
         #EXTEND HATCH GRABBER 
-        self.piston = extendPiston(piston=wpilib.DoubleSolenoid(1, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
+        self.piston = extendPiston(piston=wpilib.DoubleSolenoid(4, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
 
         #LIFT
         self.lift = Lift(
             front_left = wpilib.DoubleSolenoid(0, FRONT_LEFT_EXTEND, FRONT_LEFT_RETRACT),
-            front_right = wpilib.DoubleSolenoid(0, FRONT_RIGHT_EXTEND, FRONT_RIGHT_RETRACT),
-            back_left = wpilib.DoubleSolenoid(0, BACK_LEFT_EXTEND, BACK_LEFT_RETRACT), 
-            back_right = wpilib.DoubleSolenoid(0, BACK_RIGHT_EXTEND, BACK_RIGHT_RETRACT) 
+            front_right = wpilib.DoubleSolenoid(1, FRONT_RIGHT_EXTEND, FRONT_RIGHT_RETRACT),
+            back_left = wpilib.DoubleSolenoid(2, BACK_LEFT_EXTEND, BACK_LEFT_RETRACT), 
+            back_right = wpilib.DoubleSolenoid(3, BACK_RIGHT_EXTEND, BACK_RIGHT_RETRACT) 
         )
             
         
