@@ -6,8 +6,8 @@ class extendPiston():
     def __init__(self, piston):
         self.piston = piston
 
-    def lower_down(self):
+    def retract(self):
         self.piston.set(extendPiston.stateRetract)
     
-    def raise_up(self):
+    def extend(self):
         self.piston.set(extendPiston.stateExtend)
