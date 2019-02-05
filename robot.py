@@ -31,24 +31,11 @@ PISTON_EXTEND_ID = 4
 PISTON_RETRACT_ID = 5
 
 #LIFT PISTON IDs (solenoid)
-CENTER_LEFT = 0
-CENTER_RIGHT = 1
+CENTER_EXTEND_ID = 0
+CENTER_RETRACT_ID = 1
 
-BACK_LEFT = 2
-BACK_RIGHT = 3
-
-# FRONT_LEFT_RETRACT = 0
-# FRONT_LEFT_EXTEND = 1
-
-# FRONT_RIGHT_RETRACT = 2
-# FRONT_RIGHT_EXTEND = 3
-
-# BACK_LEFT_RETRACT = 0
-# BACK_LEFT_EXTEND = 1
-
-# BACK_RIGHT_RETRACT = 2
-# BACK_RIGHT_EXTEND = 3
-
+BACK_EXTEND_ID = 2
+BACK_RETRACT_ID = 3
 
 #ELEVATOR ID (talon)
 ELEVATOR_ID_MASTER = 7
@@ -66,7 +53,7 @@ MEDIUM_CARGO_VALUE = 1500
 HIGH_HATCH_VALUE = 2000
 HIGH_CARGO_VALUE = 2500
 
-class MyRobot(wpilib.IterativeRobot):
+class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
         #assigns driver as controller 0 and operator as controller 1
         self.driver = wpilib.XboxController(0)
@@ -94,24 +81,17 @@ class MyRobot(wpilib.IterativeRobot):
         space on the solenoid module.
         '''
         self.lift = Lift(
-                center = wpilib.DoubleSolenoid(0, CENTER_LEFT, CENTER_RIGHT), 
-                back = wpilib.DoubleSolenoid(0, BACK_LEFT, BACK_RIGHT)
+                wpilib.DoubleSolenoid(CENTER_EXTEND_ID, CENTER_RETRACT_ID), 
+                wpilib.DoubleSolenoid(BACK_EXTEND_ID, BACK_RETRACT_ID)
         )
         
         #ELEVATOR
         elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
        
-        #ELEVATOR PID
-        '''
-        
-
-        '''
-        self.command = None
-        self.ahrs = AHRS.create_spi()
-        self.encoder = fakeEncoder()
-        
-        self.command = elevatorAttendant(self.encoder, 0, 100, -1, 1)
+        #self.ahrs = AHRS.create_spi()
+        self.encoder = FakeEncoder()
+        self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
 
 
     def robotPeriodic(self):
@@ -121,13 +101,13 @@ class MyRobot(wpilib.IterativeRobot):
         """Executed at the start of teleop mode"""
         self.pistons_activated = False
         self.forward = 0
+
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
         max_accel = 0.3
         max_forward = 1.0
         max_rotate = 1.0
-
 
         goal_forward = self.driver.getRawAxis(3)
         rotation_value = -self.driver.getX(LEFT)
@@ -142,7 +122,6 @@ class MyRobot(wpilib.IterativeRobot):
         else:
             self.forward += max_accel * sign(delta)
 
-
         self.drivetrain.arcade_drive(self.forward, rotation_value)
 
         #4BAR CONTROL
@@ -150,12 +129,11 @@ class MyRobot(wpilib.IterativeRobot):
         Left bumper = retract intake (piston in)
         Right bumper = extend intake beyond frame perimeter (piston out)
         '''
-        if 
 
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
         if elevateToHeight:
-            self.command.setSetpoint(setPoint)
+            self.elevatorAttendant.setSetpoint(setPoint)
 
 
         #If proximity sensor = 0
@@ -178,9 +156,9 @@ class MyRobot(wpilib.IterativeRobot):
         release_pistons = self.operator.getBackButton() and self.driver.getStartButton()
 
         if activate_pistons:
-            self.lift.raise_up()
+            self.lift.raise_all()
         if release_pistons:
-            self.lift.lower_down()
+            self.lift.lower_all()
 
 def createMasterAndSlaves(MASTER, slave1, slave2):
     '''
@@ -197,7 +175,7 @@ def createMasterAndSlaves(MASTER, slave1, slave2):
 
     return master_talon
 
-class elevatorAttendant:
+class ElevatorAttendant:
     def __init__(self, encoder, lowInput, highInput, lowOutput, highOutput):
         self.encoder = encoder
 
@@ -214,7 +192,7 @@ class elevatorAttendant:
     def getHeightRate(self):
         return self.elevateToHeightRate
 
-    def turn(self):
+    def move(self):
         self.pid.enable()
     
     def stop(self):
@@ -223,23 +201,13 @@ class elevatorAttendant:
     def setSetpoint(self, height):
         self.pid.setSetpoint(height)
 
-class fakeEncoder:
+class FakeEncoder:
     def pidGet(self):
         return hal_data['encoder'][0]['value']
 
     def getPIDSourceType(self):
-        return PIDSourceType.kDisplacement
+        return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
 
-def deadzone(val, deadzone):
-    if abs(val) < deadzone:
-        return 0
-    return val
-
-def sign(number):
-    if number > 0:
-        return 1
-    else:
-        return -1
 
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
@@ -250,7 +218,6 @@ def deadzone(val, deadzone):
     else:
         x = ((val - deadzone)/(1-deadzone))
         return (x)
-
 
 def sign(number):
     if number > 0:

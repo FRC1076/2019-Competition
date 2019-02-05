@@ -10,6 +10,7 @@ class Drivetrain:
 
         self.right = right
         self.left = left
+        self.encoder_motor = left    # pick one
 
         self.setpoint = 0
         self.P = 1.8
