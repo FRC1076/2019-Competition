@@ -63,7 +63,7 @@ MAX_ELEVATOR_RANGE = 200
 #Match time for timer
 
 #Teleop duration
-TELEOP_DURATION_SECONDS = 10
+TELEOP_DURATION_SECONDS = 150
 
 class MyRobot(wpilib.IterativeRobot):
     def robotInit(self):
@@ -109,7 +109,9 @@ class MyRobot(wpilib.IterativeRobot):
         self.encoder = fakeEncoder()
         
         self.command = elevatorAttendant(self.encoder, 0, 100, -1, 1)
-
+        #time
+        self.timer = wpilib.Timer()
+        self.loops = 0
 
     def robotPeriodic(self):
         pass
@@ -119,7 +121,10 @@ class MyRobot(wpilib.IterativeRobot):
         self.pistons_activated = False
         self.forward = 0
         self.matchtimer = MatchTimer(TELEOP_DURATION_SECONDS)
-        
+        self.loops = 0
+        self.timer.reset()
+        self.timer.start()
+
         
             
         
@@ -191,19 +196,25 @@ class MyRobot(wpilib.IterativeRobot):
         5: Hatch Panel grab (piston out). 5+wammy: Hatch Panel release (piston in). (5, z!=0)
         Start: Activate end game with Driver approval (8)
         '''
-
+        
+        #timer
+        self.loops += 1
+        if self.timer.hasPeriodPassed(1):
+            self.logger.info("%d is time up", self.matchtimer.AreWeThereYet())
+            self.loops = 0
+        
         #END GAME 
 
         activate_pistons = self.operator.getStartButton() and self.driver.getStartButton()
-        release_pistons = self.operator.getBackButton() and self.driver.getStartButton()
+        release_pistons = self.operator.getBackButton() and self.driver.gettStartButton()
 
         if activate_pistons:
             self.lift.raise_up()
         if release_pistons:
             self.lift.lower_down()
 
-        if self.matchtimer.AreWeThereYet():
-            self.lift.raise_all()
+        #if self.matchtimer.AreWeThereYet():
+        #    self.lift.raise_all()
              #do something special
 
 class MatchTimer:
@@ -214,10 +225,14 @@ class MatchTimer:
 
     def endTime(self): 
         self.end_time = (self.starttime + self.duration)
-        return(self.end_time)
+        return (self.end_time)
     def AreWeThereYet(self):
         now = time.time()
-        return self.endTime() >= now
+        if self.endTime() >= now:
+            time_left = (self.endTime() - now)
+            return (time_left)
+        else:
+            return(0)
         
 def createMasterAndSlaves(MASTER, slave1, slave2):
     '''
