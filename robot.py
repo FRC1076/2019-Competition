@@ -60,11 +60,20 @@ ELEVATOR_ID_SLAVE = 8
 MIN_ELEVATOR_RANGE = 0
 MAX_ELEVATOR_RANGE = 200
 
+#ELEVATOR STOPS
+LOW_HATCH_VALUE = 0
+LOW_CARGO_VALUE = 500
+MEDIUM_HATCH_VALUE = 1000
+MEDIUM_CARGO_VALUE = 1500
+HIGH_HATCH_VALUE = 2000
+HIGH_CARGO_VALUE = 2500
+
 class MyRobot(wpilib.IterativeRobot):
     def robotInit(self):
         #assigns driver as controller 0 and operator as controller 1
         self.driver = wpilib.XboxController(0)
         self.operator = wpilib.XboxController(1)
+        self.elevatorController = ElevatorController(self.operator, self.logger)
 
         #GYRO
         self.gyro = wpilib.AnalogGyro(1)
@@ -138,38 +147,13 @@ class MyRobot(wpilib.IterativeRobot):
         self.drivetrain.arcade_drive(self.forward, rotation_value)
 
         #ELEVATOR CONTROL
-        elevateToHeight = False
+        (elevateToHeight, setPoint) = self.elevatorController.getOperation()
+        if elevateToHeight:
+            self.command.setSetpoint(setPoint)
+
 
         #If proximity sensor = 0
             #self.encoder.reset()
-
-        
-        if (self.operator.getAButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
-            self.command.setSetpoint(LOW_CARGO_VALUE)
-            elevateToHeight = True
-
-            print("low cargo value")
-
-        elif self.operator.getAButton():
-            self.command.setSetpoint(LOW_HATCH_VALUE)
-            elevateToHeight = True
-
-        elif (self.operator.getBButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
-            self.command.setSetpoint(MEDIUM_CARGO_VALUE)
-            elevateToHeight = True
-
-        elif self.operator.getBButton():
-            self.command.setSetpoint(MEDIUM_HATCH_VALUE)
-            elevateToHeight = True
-        
-        elif self.operator.getXButton():
-            self.command.setSetpoint(HIGH_CARGO_VALUE)
-            elevateToHeight = True
-
-        elif (self.operator.getXButton() and (self.operator.getTriggerAxis(self.LEFT) > -0.9 and not (self.operator.getTriggerAxis(self.LEFT) == 0))):
-            self.command.setSetpoint(HIGH_HATCH_VALUE)
-            elevateToHeight = True
-        
 
         '''
         Guitar Hero controls
@@ -268,6 +252,45 @@ def sign(number):
     else:
         return -1
 
+class ElevatorController:
+
+    def __init__(self, controller, logger = None):
+        self.controller = controller
+        self.logger = logger
+    def getOperation(self):
+        
+        whammyBarPressed = (self.controller.getTriggerAxis(LEFT) > -0.9 and not (self.controller.getTriggerAxis(LEFT) == 0))
+        if self.logger is not None:
+            if whammyBarPressed:
+                self.logger.info("whammy bar has been pressed")
+        if self.controller.getAButton():
+            if whammyBarPressed:
+                setPoint = LOW_CARGO_VALUE
+            else:
+                setPoint = LOW_HATCH_VALUE
+            if self.logger is not None:
+                self.logger.info("button A has been pressed")
+            runElevator = True
+
+        elif self.controller.getBButton():
+            if whammyBarPressed:
+                setPoint = MEDIUM_CARGO_VALUE
+            else:
+                setPoint = MEDIUM_HATCH_VALUE
+            runElevator = True
+
+        elif self.controller.getXButton():
+            if whammyBarPressed:
+                setPoint = HIGH_CARGO_VALUE
+            else:
+                setPoint = HIGH_HATCH_VALUE
+            runElevator = True
+        
+        else:
+            setPoint = 0
+            runElevator = False
+        
+        return (runElevator, setPoint)
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)
