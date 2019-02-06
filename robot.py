@@ -141,6 +141,26 @@ class MyRobot(wpilib.TimedRobot):
         Left bumper = retract intake (piston in)
         Right bumper = extend intake beyond frame perimeter (piston out)
         '''
+        if self.driver.getBumper(LEFT_CONTROLLER_HAND):
+            self.piston.extend()
+        elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
+            self.piston.retract()
+
+        #DRIVER TEMPORARY ELEVATOR CONTROL 
+        '''
+        Left trigger is go up, Right trigger is go down 
+        '''
+        left_trigger = self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND)
+        right_trigger = self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND)
+
+        TRIGGER_LEVEL = 0.4
+
+        if abs(left_trigger) > TRIGGER_LEVEL:
+            self.elevator.go_up(left_trigger)
+        elif abs(right_trigger) > TRIGGER_LEVEL:
+            self.elevator.go_down(right_trigger)
+        else:
+            self.elevator.stop()
 
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
@@ -242,8 +262,8 @@ class ElevatorController:
     def __init__(self, controller, logger = None):
         self.controller = controller
         self.logger = logger
+
     def getOperation(self):
-        
         whammyBarPressed = (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) > -0.9 and not (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) == 0))
         if self.logger is not None:
             if whammyBarPressed:
