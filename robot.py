@@ -1,18 +1,23 @@
+#GENERAL PYTHON
 import math
-import wpilib
+
+#GENERAL ROBOT
 import ctre 
-from subsystems.drivetrain import Drivetrain
-from subsystems.elevator import Elevator
-from subsystems.hatchGrabber import Grabber
-from subsystems.lift import Lift
-from subsystems.extendPiston import extendPiston
+import wpilib
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
 from navx import AHRS
 from hal_impl.data import hal_data
 
-LEFT = wpilib.interfaces.GenericHID.Hand.kLeft
-RIGHT = wpilib.interfaces.GenericHID.Hand.kRight
+#OUR ROBOT SYSTEMS AND LIBRARIES
+from subsystems.drivetrain import Drivetrain
+from subsystems.elevator import Elevator
+from subsystems.hatchGrabber import Grabber
+from subsystems.lift import Lift
+from subsystems.extendPiston import extendPiston
+
+LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
+RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
 
 #DRIVETRAIN IDs (talon and victor)
 LEFT_MASTER_ID = 1
@@ -23,12 +28,12 @@ RIGHT_MASTER_ID = 4
 RIGHT_SLAVE_1_ID = 5
 RIGHT_SLAVE_2_ID = 6
 
-#HATCH GRABBER PISTON IDs (solenoid)
-RETRACT_ID = 6
-EXTEND_ID = 7
+#ELEVATOR ID (talon)
+ELEVATOR_ID_MASTER = 7
+ELEVATOR_ID_SLAVE = 8
 
-PISTON_EXTEND_ID = 4
-PISTON_RETRACT_ID = 5
+#BALL MANIPULATOR IDs (talon)
+BALL_MANIP_ID = 9
 
 #LIFT PISTON IDs (solenoid)
 CENTER_EXTEND_ID = 0
@@ -37,9 +42,12 @@ CENTER_RETRACT_ID = 1
 BACK_EXTEND_ID = 2
 BACK_RETRACT_ID = 3
 
-#ELEVATOR ID (talon)
-ELEVATOR_ID_MASTER = 7
-ELEVATOR_ID_SLAVE = 8
+#HATCH GRABBER PISTON IDs (solenoid)
+PISTON_EXTEND_ID = 4
+PISTON_RETRACT_ID = 5
+
+RETRACT_ID = 6
+EXTEND_ID = 7
 
 #ELEVATOR PID IDs
 MIN_ELEVATOR_RANGE = 0
@@ -110,7 +118,7 @@ class MyRobot(wpilib.TimedRobot):
         max_rotate = 1.0
 
         goal_forward = self.driver.getRawAxis(3)
-        rotation_value = -self.driver.getX(LEFT)
+        rotation_value = -self.driver.getX(LEFT_CONTROLLER_HAND)
 
         goal_forward = deadzone(goal_forward * max_forward, deadzone_value)
         rotation_value = deadzone(rotation_value * max_rotate, deadzone_value)
@@ -232,7 +240,7 @@ class ElevatorController:
         self.logger = logger
     def getOperation(self):
         
-        whammyBarPressed = (self.controller.getTriggerAxis(LEFT) > -0.9 and not (self.controller.getTriggerAxis(LEFT) == 0))
+        whammyBarPressed = (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) > -0.9 and not (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) == 0))
         if self.logger is not None:
             if whammyBarPressed:
                 self.logger.info("whammy bar has been pressed")
