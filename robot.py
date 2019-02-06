@@ -15,6 +15,7 @@ from subsystems.elevator import Elevator
 from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
+from subsystems.ballManipulator import ballManipulator
 
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
