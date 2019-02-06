@@ -15,6 +15,7 @@ from subsystems.elevator import Elevator
 from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
+from subsystems.ballManipulator import BallManipulator, BallManipulatorController
 
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
@@ -80,8 +81,9 @@ class MyRobot(wpilib.TimedRobot):
         self.grabber = Grabber(
             hatch = wpilib.DoubleSolenoid(5, EXTEND_ID, RETRACT_ID))
 
-        #BALL MANIPULATOR
-        self.ballManipulator = ballManipulator(ctre.WPI_TalonSRX(BALL_MANIP_ID))
+        #ball manipulator and controller
+        self.ballManipulator = BallManipulator(ctre.WPI_TalonSRX(BALL_MANIP_ID))
+        self.ballManipulatorController = BallManipulatorController(self.operator, self.logger)
 
         #EXTEND HATCH GRABBER 
         self.piston = extendPiston(piston=wpilib.DoubleSolenoid(4, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
@@ -146,7 +148,10 @@ class MyRobot(wpilib.TimedRobot):
         if elevateToHeight:
             self.elevatorAttendant.setSetpoint(setPoint)
 
-
+        # Ball manipulator control
+        ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
+        self.ballManipulator.set(ballMotorSetPoint)
+        
         #If proximity sensor = 0
             #self.encoder.reset()
 
