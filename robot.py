@@ -80,6 +80,9 @@ class MyRobot(wpilib.TimedRobot):
         self.grabber = Grabber(
             hatch = wpilib.DoubleSolenoid(5, EXTEND_ID, RETRACT_ID))
 
+        #BALL MANIPULATOR
+        self.ballManipulator = ballManipulator(ctre.WPI_TalonSRX(BALL_MANIP_ID))
+
         #EXTEND HATCH GRABBER 
         self.piston = extendPiston(piston=wpilib.DoubleSolenoid(4, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
 
