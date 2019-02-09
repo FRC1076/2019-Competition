@@ -12,7 +12,7 @@ from hal_impl.data import hal_data
 #OUR ROBOT SYSTEMS AND LIBRARIES
 from subsystems.drivetrain import Drivetrain
 from subsystems.elevator import Elevator
-from  subsystems.elevator import ElevatorAttendant
+from subsystems.elevator import ElevatorAttendant
 from subsystems.elevator import ElevatorController
 from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
