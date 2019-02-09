@@ -195,19 +195,12 @@ def createMasterAndSlaves(MASTER, slave1, slave2=None):
   First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
   This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
   '''
-  if slave2 is None:
-    master_talon = ctre.WPI_TalonSRX(MASTER)
+  master_talon = ctre.WPI_TalonSRX(MASTER)
+  slave_talon = ctre.WPI_TalonSRX(slave1)
+  slave_talon.follow(master_talon)
     
-    slave_talon = ctre.WPI_TalonSRX(slave1)
-    
-    slave_talon.follow(master_talon)
-    
-    return master_talon
-  else:
-    master_talon = ctre.WPI_TalonSRX(MASTER)
-    slave_talon = ctre.WPI_TalonSRX(slave1)
+  if slave2 is not None:
     slave_victor = ctre.victorspx.VictorSPX(slave2)
-    slave_talon.follow(master_talon)
     slave_victor.follow(master_talon)
     return master_talon
 
