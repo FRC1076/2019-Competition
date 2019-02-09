@@ -13,7 +13,12 @@ except ModuleNotFoundError as e:
     print("Missing navx.  Carry on!")
     MISSING_NAVX = True
     
-from hal_impl.data import hal_data
+try:
+    from hal_impl.data import hal_data
+    MISSING_HAL = False
+except ModuleNotFoundError as e:
+    print("Missing hal_data. Ignore.")
+    MISSING_HAL = True
 
 #OUR ROBOT SYSTEMS AND LIBRARIES
 from subsystems.drivetrain import Drivetrain
@@ -206,7 +211,10 @@ def createMasterAndSlaves(MASTER, slave1, slave2=None):
 
 class FakeEncoder:
     def pidGet(self):
-        return hal_data['encoder'][0]['value']
+        if MISSIN_HAL:
+            return 0
+        else:
+            return hal_data['encoder'][0]['value']
 
     def getPIDSourceType(self):
         return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
