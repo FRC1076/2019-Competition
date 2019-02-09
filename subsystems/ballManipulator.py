@@ -2,7 +2,7 @@ import wpilib
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 
 GATHER_SPEED = 1.0
-SPIT_SPEED = 1.0
+SPIT_SPEED = -1.0
 STOP_SPEED = 0.0
 
 class BallManipulator:
@@ -17,7 +17,7 @@ class BallManipulator:
         self.motor.set(speed)
 
     def spit(self, speed = SPIT_SPEED):
-        self.motor.set(-speed)
+        self.motor.set(speed)
 
     def stop(self):
         self.motor.set(STOP_SPEED)
