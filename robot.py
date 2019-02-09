@@ -6,14 +6,18 @@ import ctre
 import wpilib
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
-from navx import AHRS
+try:
+    from navx import AHRS
+    MISSING_NAVX = False
+except ModuleNotFoundError as e:
+    print("Missing navx.  Carry on!")
+    MISSING_NAVX = True
+    
 from hal_impl.data import hal_data
 
 #OUR ROBOT SYSTEMS AND LIBRARIES
 from subsystems.drivetrain import Drivetrain
-from subsystems.elevator import Elevator
-from subsystems.elevator import ElevatorAttendant
-from subsystems.elevator import ElevatorController
+from subsystems.elevator import Elevator, ElevatorAttendant, ElevatorController
 from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
@@ -206,13 +210,13 @@ def createMasterAndSlaves(MASTER, slave1, slave2=None):
     slave_talon.follow(master_talon)
     slave_victor.follow(master_talon)
     return master_talon
+
 class FakeEncoder:
     def pidGet(self):
         return hal_data['encoder'][0]['value']
 
     def getPIDSourceType(self):
         return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
-
 
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
