@@ -207,8 +207,23 @@ def createMasterAndSlaves(MASTER, slave1, slave2=None):
     if slave2 is not None:
         slave_victor = ctre.victorspx.VictorSPX(slave2)
         slave_victor.follow(master_talon)
-        return master_talon
     return master_talon
+
+def createTalonAndSlaves(MASTER, slave1, slave2=None):
+    '''
+    First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
+    This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
+    '''
+    master_talon = ctre.WPI_TalonSRX(MASTER)
+    slave_talon = ctre.WPI_TalonSRX(slave1)
+    slave_talon.follow(master_talon)
+    
+    if slave2 is not None:
+        slave_talon2 = ctre.WPI_TalonSRX(slave2)
+        slave_talon2.follow(master_talon)
+    return master_talon
+
+
 class FakeEncoder:
     def pidGet(self):
         if MISSING_HAL:
