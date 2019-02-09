@@ -6,12 +6,23 @@ import ctre
 import wpilib
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
-from navx import AHRS
-from hal_impl.data import hal_data
+try:
+    from navx import AHRS
+    MISSING_NAVX = False
+except ModuleNotFoundError as e:
+    print("Missing navx.  Carry on!")
+    MISSING_NAVX = True
+    
+try:
+    from hal_impl.data import hal_data
+    MISSING_HAL = False
+except ModuleNotFoundError as e:
+    print("Missing hal_data. Ignore.")
+    MISSING_HAL = True
 
 #OUR ROBOT SYSTEMS AND LIBRARIES
 from subsystems.drivetrain import Drivetrain
-from subsystems.elevator import Elevator
+from subsystems.elevator import Elevator, ElevatorAttendant, ElevatorController
 from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
@@ -50,18 +61,6 @@ PISTON_RETRACT_ID = 5
 RETRACT_ID = 6
 EXTEND_ID = 7
 
-#ELEVATOR PID IDs
-MIN_ELEVATOR_RANGE = 0
-MAX_ELEVATOR_RANGE = 200
-
-#ELEVATOR STOPS
-LOW_HATCH_VALUE = 0
-LOW_CARGO_VALUE = 500
-MEDIUM_HATCH_VALUE = 1000
-MEDIUM_CARGO_VALUE = 1500
-HIGH_HATCH_VALUE = 2000
-HIGH_CARGO_VALUE = 2500
-
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
         #assigns driver as controller 0 and operator as controller 1
@@ -99,9 +98,9 @@ class MyRobot(wpilib.TimedRobot):
         )
         
         #ELEVATOR
-        elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
+        elevator_motor = createMasterAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
-       
+        #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
         self.encoder = FakeEncoder()
         self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
@@ -196,54 +195,44 @@ class MyRobot(wpilib.TimedRobot):
         if release_pistons:
             self.lift.lower_all()
 
-def createMasterAndSlaves(MASTER, slave1, slave2):
+def createMasterAndSlaves(MASTER, slave1, slave2=None):
     '''
     First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
     This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
     '''
     master_talon = ctre.WPI_TalonSRX(MASTER)
-
     slave_talon = ctre.WPI_TalonSRX(slave1)
-    slave_victor = ctre.victorspx.VictorSPX(slave2)
-
     slave_talon.follow(master_talon)
-    slave_victor.follow(master_talon)
-
+    
+    if slave2 is not None:
+        slave_victor = ctre.victorspx.VictorSPX(slave2)
+        slave_victor.follow(master_talon)
     return master_talon
 
-class ElevatorAttendant:
-    def __init__(self, encoder, lowInput, highInput, lowOutput, highOutput):
-        self.encoder = encoder
-
-        kP = 0.01
-        kI = 0.00
-        kD = 0.00
-        self.pid = wpilib.PIDController(kP, kI, kD, source=encoder, output=self)
-        self.pid.setInputRange(lowInput, highInput)
-        self.pid.setOutputRange(lowOutput, highOutput)
-
-    def pidWrite(self, output):
-        self.elevateToHeightRate = output
+def createTalonAndSlaves(MASTER, slave1, slave2=None):
+    '''
+    First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
+    This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
+    '''
+    master_talon = ctre.WPI_TalonSRX(MASTER)
+    slave_talon = ctre.WPI_TalonSRX(slave1)
+    slave_talon.follow(master_talon)
     
-    def getHeightRate(self):
-        return self.elevateToHeightRate
+    if slave2 is not None:
+        slave_talon2 = ctre.WPI_TalonSRX(slave2)
+        slave_talon2.follow(master_talon)
+    return master_talon
 
-    def move(self):
-        self.pid.enable()
-    
-    def stop(self):
-        self.pid.disable()
-
-    def setSetpoint(self, height):
-        self.pid.setSetpoint(height)
 
 class FakeEncoder:
     def pidGet(self):
-        return hal_data['encoder'][0]['value']
+        if MISSING_HAL:
+            return 0
+        else:
+            return hal_data['encoder'][0]['value']
 
     def getPIDSourceType(self):
         return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
-
 
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
@@ -260,46 +249,7 @@ def sign(number):
         return 1
     else:
         return -1
-
-class ElevatorController:
-
-    def __init__(self, controller, logger = None):
-        self.controller = controller
-        self.logger = logger
-
-    def getOperation(self):
-        whammyBarPressed = (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) > -0.9 and not (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) == 0))
-        if self.logger is not None:
-            if whammyBarPressed:
-                self.logger.info("whammy bar has been pressed")
-        if self.controller.getAButton():
-            if whammyBarPressed:
-                setPoint = LOW_CARGO_VALUE
-            else:
-                setPoint = LOW_HATCH_VALUE
-            if self.logger is not None:
-                self.logger.info("button A has been pressed")
-            runElevator = True
-
-        elif self.controller.getBButton():
-            if whammyBarPressed:
-                setPoint = MEDIUM_CARGO_VALUE
-            else:
-                setPoint = MEDIUM_HATCH_VALUE
-            runElevator = True
-
-        elif self.controller.getXButton():
-            if whammyBarPressed:
-                setPoint = HIGH_CARGO_VALUE
-            else:
-                setPoint = HIGH_HATCH_VALUE
-            runElevator = True
         
-        else:
-            setPoint = 0
-            runElevator = False
-        
-        return (runElevator, setPoint)
-
 if __name__ == "__main__":
     wpilib.run(MyRobot)
+
