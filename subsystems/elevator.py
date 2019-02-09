@@ -60,14 +60,19 @@ class ElevatorController:
     def __init__(self, controller, logger = None):
         self.controller = controller
         self.logger = logger
+        self.damper = 0
 
     def getOperation(self):
-        whammyBarPressed = (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) > -0.9 and not (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) == 0))
-        runElevator = True     # assume running unless no buttons pressed
-        if self.logger is not None:
-            if whammyBarPressed:
-                self.logger.info("whammy bar has been pressed")
+        self.damper += 1
+        triggerAxisValue = self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND)
+        
+         if self.logger is not None:
+             if (self.damper % 50) == 0:
+                 self.logger.info("triggerAxis(LEFT) value = %f", triggerAxisValue)
                 
+        whammyBarPressed = (triggerAxisValue > -0.9 and not (triggerAxisValue == 0))
+        runElevator = True     # assume running unless no buttons pressed
+                    
         if self.controller.getAButton():
             if whammyBarPressed:
                 setPoint = LOW_CARGO_VALUE
