@@ -196,22 +196,22 @@ class MyRobot(wpilib.TimedRobot):
             self.lift.lower_all()
 
 def createMasterAndSlaves(MASTER, slave1, slave2=None):
-  '''
-  First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
-  This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
-  '''
-  master_talon = ctre.WPI_TalonSRX(MASTER)
-  slave_talon = ctre.WPI_TalonSRX(slave1)
-  slave_talon.follow(master_talon)
+    '''
+    First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
+    This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
+    '''
+    master_talon = ctre.WPI_TalonSRX(MASTER)
+    slave_talon = ctre.WPI_TalonSRX(slave1)
+    slave_talon.follow(master_talon)
     
-  if slave2 is not None:
-    slave_victor = ctre.victorspx.VictorSPX(slave2)
-    slave_victor.follow(master_talon)
+    if slave2 is not None:
+        slave_victor = ctre.victorspx.VictorSPX(slave2)
+        slave_victor.follow(master_talon)
+        return master_talon
     return master_talon
-
 class FakeEncoder:
     def pidGet(self):
-        if MISSIN_HAL:
+        if MISSING_HAL:
             return 0
         else:
             return hal_data['encoder'][0]['value']
