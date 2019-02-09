@@ -63,9 +63,11 @@ class ElevatorController:
 
     def getOperation(self):
         whammyBarPressed = (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) > -0.9 and not (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) == 0))
+        runElevator = True     # assume running unless no buttons pressed
         if self.logger is not None:
             if whammyBarPressed:
                 self.logger.info("whammy bar has been pressed")
+                
         if self.controller.getAButton():
             if whammyBarPressed:
                 setPoint = LOW_CARGO_VALUE
@@ -73,24 +75,22 @@ class ElevatorController:
                 setPoint = LOW_HATCH_VALUE
             if self.logger is not None:
                 self.logger.info("button A has been pressed")
-            runElevator = True
 
         elif self.controller.getBButton():
             if whammyBarPressed:
                 setPoint = MEDIUM_CARGO_VALUE
             else:
                 setPoint = MEDIUM_HATCH_VALUE
-            runElevator = True
 
         elif self.controller.getXButton():
             if whammyBarPressed:
                 setPoint = HIGH_CARGO_VALUE
             else:
                 setPoint = HIGH_HATCH_VALUE
-            runElevator = True
         
         else:
             setPoint = 0
             runElevator = False
         
         return (runElevator, setPoint)
+    
