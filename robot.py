@@ -155,6 +155,9 @@ class MyRobot(wpilib.TimedRobot):
         elevator_trigger = deadzone(self.driver.getRawAxis(2), TRIGGER_LEVEL) * TRIGGER_SCALE
         
         self.elevator.set(elevator_trigger)
+
+        pov_value = self.operator.getPOV()
+        
         
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()

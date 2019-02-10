@@ -92,6 +92,16 @@ class ElevatorController:
                 setPoint = HIGH_CARGO_VALUE
             else:
                 setPoint = HIGH_HATCH_VALUE
+
+        elif self.controller.getAButton():
+            if self.controller.getPOV() == 0:
+                setPoint = LOW_CARGO_VALUE
+                if self.logger is not None:
+                    self.logger.info("Strum and low cargo")
+                
+            else:
+                setPoint = LOW_HATCH_VALUE
+            
         
         else:
             setPoint = 0
