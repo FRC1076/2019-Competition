@@ -28,7 +28,7 @@ from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
 from subsystems.ballManipulator import BallManipulator, BallManipulatorController
 from subsystems.timekeeper import MatchTimer
-
+from GuitarHeroController import GuitarHeroController
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
 
@@ -69,6 +69,7 @@ class MyRobot(wpilib.TimedRobot):
         #assigns driver as controller 0 and operator as controller 1
         self.driver = wpilib.XboxController(0)
         self.operator = wpilib.XboxController(1)
+        self.guitar = GuitarHeroController()
         self.elevatorController = ElevatorController(self.operator, self.logger)
 
         #GYRO
@@ -118,6 +119,7 @@ class MyRobot(wpilib.TimedRobot):
         self.matchtimer = MatchTimer(TELEOP_DURATION_SECONDS)
     
     def teleopPeriodic(self):
+        x = self.guitar.WammyBar()
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
         max_accel = 0.3
@@ -174,9 +176,6 @@ class MyRobot(wpilib.TimedRobot):
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
         self.ballManipulator.set(ballMotorSetPoint)
         
-       
-        
-        
         #If proximity sensor = 0
             #self.encoder.reset()
 
@@ -190,7 +189,6 @@ class MyRobot(wpilib.TimedRobot):
         5: Hatch Panel grab (piston out). 5+wammy: Hatch Panel release (piston in). (5, z!=0)
         Start: Activate end game with Driver approval (8)
         '''
-      
         
         #timer 
 
@@ -206,7 +204,6 @@ class MyRobot(wpilib.TimedRobot):
             self.lift.raise_all()
         if release_pistons:
             self.lift.lower_all()
-
 
 def createMasterAndSlaves(MASTER, slave1, slave2=None):
     '''
@@ -235,7 +232,6 @@ def createTalonAndSlaves(MASTER, slave1, slave2=None):
         slave_talon2 = ctre.WPI_TalonSRX(slave2)
         slave_talon2.follow(master_talon)
     return master_talon
-
 
 class FakeEncoder:
     def pidGet(self):
