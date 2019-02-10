@@ -150,15 +150,15 @@ class MyRobot(wpilib.TimedRobot):
         '''
         Left trigger is go up, Right trigger is go down 
         '''
-        left_trigger = self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND)
-        right_trigger = self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND)
+        # left_trigger = self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND)
+        # right_trigger = self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND)
 
-        TRIGGER_LEVEL = 0.4
+        TRIGGER_LEVEL = 0.5
 
         if abs(left_trigger) > TRIGGER_LEVEL:
-            self.elevator.go_up(left_trigger)
+            self.elevator.go_up(self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND))
         elif abs(right_trigger) > TRIGGER_LEVEL:
-            self.elevator.go_down(right_trigger)
+            self.elevator.go_down(self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND))
         else:
             self.elevator.stop()
 

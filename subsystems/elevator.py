@@ -16,18 +16,18 @@ HIGH_CARGO_VALUE = 2500
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
 class Elevator:
-    def __init__(self, motor, encoder_motor=None):
+    def __init__(self, elevator_motor, encoder_motor):
         self.encoder_motor = encoder_motor
-        self.motor = motor
+        self.elevator_motor = elevator_motor
 
     def go_up(self, speed = 1.0):
-        self.motor.set(speed)
+        self.elevator_motor.set(speed)
 
     def go_down(self, speed = 1.0):
-        self.motor.set(-speed)
+        self.elevator_motor.set(-speed)
 
     def stop(self):
-        self.motor.set(0)
+        self.elevator_motor.set(0)
 
 class ElevatorAttendant:
     def __init__(self, encoder, lowInput, highInput, lowOutput, highOutput):
@@ -57,6 +57,9 @@ class ElevatorAttendant:
 
     def pidGet(self):
         return self.encoder.getQuadraturePosition()
+    
+    def getPIDSourceType(self):
+        return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
         
 
 class ElevatorController:
