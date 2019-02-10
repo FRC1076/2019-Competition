@@ -174,9 +174,6 @@ class MyRobot(wpilib.TimedRobot):
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
         self.ballManipulator.set(ballMotorSetPoint)
         
-       
-        
-        
         #If proximity sensor = 0
             #self.encoder.reset()
 
@@ -191,7 +188,6 @@ class MyRobot(wpilib.TimedRobot):
         Start: Activate end game with Driver approval (8)
         '''
       
-        
         #timer 
 
         if self.matchtimer.timer.hasPeriodPassed(1):
@@ -206,7 +202,6 @@ class MyRobot(wpilib.TimedRobot):
             self.lift.raise_all()
         if release_pistons:
             self.lift.lower_all()
-
 
 def createMasterAndSlaves(MASTER, slave1, slave2=None):
     '''
@@ -236,7 +231,6 @@ def createTalonAndSlaves(MASTER, slave1, slave2=None):
         slave_talon2.follow(master_talon)
     return master_talon
 
-
 class FakeEncoder:
     def pidGet(self):
         if MISSING_HAL:
@@ -265,4 +259,3 @@ def sign(number):
         
 if __name__ == "__main__":
     wpilib.run(MyRobot)
-
