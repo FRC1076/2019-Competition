@@ -36,7 +36,7 @@ class ElevatorAttendant:
         kP = 0.01
         kI = 0.00
         kD = 0.00
-        self.pid = wpilib.PIDController(kP, kI, kD, source=encoder, output=self)
+        self.pid = wpilib.PIDController(kP, kI, kD, source=self, output=self)
         self.pid.setInputRange(lowInput, highInput)
         self.pid.setOutputRange(lowOutput, highOutput)
 
@@ -55,6 +55,10 @@ class ElevatorAttendant:
     def setSetpoint(self, height):
         self.pid.setSetpoint(height)
 
+    def pidGet(self):
+        return self.encoder.getQuadraturePosition()
+        
+
 class ElevatorController:
 
     def __init__(self, controller, logger = None):
@@ -70,7 +74,7 @@ class ElevatorController:
             if (self.damper % 50) == 0:
                 self.logger.info("triggerAxis(LEFT) value = %f", triggerAxisValue)
                 
-        whammyBarPressed = (triggerAxisValue > -0.9 and not (triggerAxisValue == 0))
+        whammyBarPressed = (triggerAxisValue > -0.7 and not (triggerAxisValue == 0))
         runElevator = True     # assume running unless no buttons pressed
                     
         if self.controller.getAButton():

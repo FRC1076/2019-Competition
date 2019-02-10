@@ -166,6 +166,11 @@ class MyRobot(wpilib.TimedRobot):
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
         if elevateToHeight:
             self.elevatorAttendant.setSetpoint(setPoint)
+            self.elevatorAttendant.move()
+            self.elevator.set(self.elevatorAttendant.getHeightRate())
+        else:
+            self.elevatorAttendant.stop()
+
 
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
