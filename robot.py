@@ -150,18 +150,12 @@ class MyRobot(wpilib.TimedRobot):
         '''
         Left trigger is go up, Right trigger is go down 
         '''
-        left_trigger = self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND)
-        right_trigger = self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND)
-
-        TRIGGER_LEVEL = 0.4
-
-        if abs(left_trigger) > TRIGGER_LEVEL:
-            self.elevator.go_up(left_trigger)
-        elif abs(right_trigger) > TRIGGER_LEVEL:
-            self.elevator.go_down(right_trigger)
-        else:
-            self.elevator.stop()
-
+        TRIGGER_LEVEL = 0.35
+        TRIGGER_SCALE = 0.2
+        elevator_trigger = deadzone(self.driver.getRawAxis(2), TRIGGER_LEVEL) * TRIGGER_SCALE
+        
+        self.elevator.set(elevator_trigger)
+        
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
         if elevateToHeight:
