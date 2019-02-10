@@ -10,7 +10,9 @@ class MatchTimer:
     def __init__(self, duration):
         self.starttime = time.time()
         self.duration = TELEOP_DURATION_SECONDS
-
+        self.timer = wpilib.Timer()
+        self.timer.reset()
+        self.timer.start()
     def endTime(self): 
         self.end_time = (self.starttime + self.duration)
         return (self.end_time)
@@ -21,3 +23,4 @@ class MatchTimer:
             return (time_left)
         else:
             return(0)
+    

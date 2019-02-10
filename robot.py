@@ -108,11 +108,6 @@ class MyRobot(wpilib.TimedRobot):
         self.encoder = FakeEncoder()
         self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
 
-        #time
-        self.timer = wpilib.Timer()
-        self.loops = 0
-
-
     def robotPeriodic(self):
         pass
 
@@ -121,10 +116,7 @@ class MyRobot(wpilib.TimedRobot):
         self.pistons_activated = False
         self.forward = 0
         self.matchtimer = MatchTimer(TELEOP_DURATION_SECONDS)
-        self.loops = 0
-        self.timer.reset()
-        self.timer.start()
-
+    
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
@@ -202,11 +194,9 @@ class MyRobot(wpilib.TimedRobot):
         
         #timer 
 
-        self.loops += 1
-        if self.timer.hasPeriodPassed(1):
+        if self.matchtimer.timer.hasPeriodPassed(1):
             self.logger.info("%d is time up", self.matchtimer.AreWeThereYet())
-            self.loops = 0
-        
+
         #END GAME 
 
         activate_pistons = self.operator.getStartButton() and self.driver.getStartButton()
