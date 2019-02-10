@@ -1,6 +1,6 @@
 #GENERAL PYTHON
 import math
-
+import time
 #GENERAL ROBOT
 import ctre 
 import wpilib
@@ -27,6 +27,7 @@ from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
 from subsystems.ballManipulator import BallManipulator, BallManipulatorController
+from subsystems.timekeeper import MatchTimer
 
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
@@ -61,6 +62,8 @@ PISTON_RETRACT_ID = 5
 RETRACT_ID = 6
 EXTEND_ID = 7
 
+#Teleop duration
+TELEOP_DURATION_SECONDS = 150
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
         #assigns driver as controller 0 and operator as controller 1
@@ -105,6 +108,10 @@ class MyRobot(wpilib.TimedRobot):
         self.encoder = FakeEncoder()
         self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
 
+        #time
+        self.timer = wpilib.Timer()
+        self.loops = 0
+
 
     def robotPeriodic(self):
         pass
@@ -113,6 +120,10 @@ class MyRobot(wpilib.TimedRobot):
         """Executed at the start of teleop mode"""
         self.pistons_activated = False
         self.forward = 0
+        self.matchtimer = MatchTimer(TELEOP_DURATION_SECONDS)
+        self.loops = 0
+        self.timer.reset()
+        self.timer.start()
 
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
@@ -171,6 +182,9 @@ class MyRobot(wpilib.TimedRobot):
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
         self.ballManipulator.set(ballMotorSetPoint)
         
+       
+        
+        
         #If proximity sensor = 0
             #self.encoder.reset()
 
@@ -184,7 +198,15 @@ class MyRobot(wpilib.TimedRobot):
         5: Hatch Panel grab (piston out). 5+wammy: Hatch Panel release (piston in). (5, z!=0)
         Start: Activate end game with Driver approval (8)
         '''
+      
+        
+        #timer 
 
+        self.loops += 1
+        if self.timer.hasPeriodPassed(1):
+            self.logger.info("%d is time up", self.matchtimer.AreWeThereYet())
+            self.loops = 0
+        
         #END GAME 
 
         activate_pistons = self.operator.getStartButton() and self.driver.getStartButton()
@@ -194,6 +216,7 @@ class MyRobot(wpilib.TimedRobot):
             self.lift.raise_all()
         if release_pistons:
             self.lift.lower_all()
+
 
 def createMasterAndSlaves(MASTER, slave1, slave2=None):
     '''
