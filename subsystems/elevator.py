@@ -29,6 +29,10 @@ class Elevator:
     def stop(self):
         self.motor.set(0)
 
+    def set(self, setpoint):
+        self.elevator.set(setpoint)
+
+
 class ElevatorAttendant:
     def __init__(self, encoder, lowInput, highInput, lowOutput, highOutput):
         self.encoder = encoder
@@ -102,7 +106,6 @@ class ElevatorController:
             else:
                 setPoint = LOW_HATCH_VALUE
             
-        
         else:
             setPoint = 0
             runElevator = False
