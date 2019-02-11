@@ -30,9 +30,9 @@ class Elevator:
         self.motor.set(0)
 
 class ElevatorAttendant:
-    def __init__(self, encoder, lowInput, highInput, lowOutput, highOutput):
+    def __init__(self, encoder, lowInput = 0, highInput = HIGH_CARGO_VALUE, lowOutput = -1.0, highOutput = 1.0):
         self.encoder = encoder
-
+        self.elevateToHeightRate = 0
         kP = 0.01
         kI = 0.00
         kD = 0.00
@@ -70,7 +70,7 @@ class ElevatorController:
             if (self.damper % 50) == 0:
                 self.logger.info("triggerAxis(LEFT) value = %f", triggerAxisValue)
                 
-        whammyBarPressed = (triggerAxisValue > -0.9 and not (triggerAxisValue == 0))
+        whammyBarPressed = (triggerAxisValue > -0.7 and not (triggerAxisValue == 0))
         runElevator = True     # assume running unless no buttons pressed
                     
         if self.controller.getAButton():
@@ -87,7 +87,7 @@ class ElevatorController:
             else:
                 setPoint = MEDIUM_HATCH_VALUE
 
-        elif self.controller.getXButton():
+        elif self.controller.getYButton():
             if whammyBarPressed:
                 setPoint = HIGH_CARGO_VALUE
             else:

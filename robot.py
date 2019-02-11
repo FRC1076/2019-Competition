@@ -23,6 +23,7 @@ except ModuleNotFoundError as e:
 #OUR ROBOT SYSTEMS AND LIBRARIES
 from subsystems.drivetrain import Drivetrain
 from subsystems.elevator import Elevator, ElevatorAttendant, ElevatorController
+from subsystems.elevator import HIGH_CARGO_VALUE
 from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
@@ -102,8 +103,8 @@ class MyRobot(wpilib.TimedRobot):
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
-        self.encoder = FakeEncoder()
-        self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
+        self.encoder = FakeEncoder(self.logger)
+        self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, HIGH_CARGO_VALUE, -1, 1)
 
 
     def robotPeriodic(self):
@@ -119,13 +120,13 @@ class MyRobot(wpilib.TimedRobot):
         deadzone_value = 0.2
         max_accel = 0.3
         max_forward = 1.0
-        max_rotate = 1.0
+        max_rotate = 0.5
 
         goal_forward = self.driver.getRawAxis(3)
         rotation_value = -self.driver.getX(LEFT_CONTROLLER_HAND)
 
         goal_forward = deadzone(goal_forward * max_forward, deadzone_value)
-        rotation_value = deadzone(rotation_value * max_rotate, deadzone_value)
+        rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
 
         delta = goal_forward - self.forward
 
@@ -134,7 +135,7 @@ class MyRobot(wpilib.TimedRobot):
         else:
             self.forward += max_accel * sign(delta)
 
-        self.drivetrain.arcade_drive(self.forward, rotation_value)
+        #self.drivetrain.arcade_drive(self.forward, rotation_value)
 
         #4BAR CONTROL
         '''
@@ -166,7 +167,14 @@ class MyRobot(wpilib.TimedRobot):
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
         if elevateToHeight:
             self.elevatorAttendant.setSetpoint(setPoint)
-
+            self.elevatorAttendant.move()
+        else:
+            self.elevatorAttendant.stop()
+        if elevateToHeight:
+            self.drivetrain.arcade_drive(self.elevatorAttendant.getHeightRate(), 0)
+        else:
+            self.drivetrain.arcade_drive(self.forward, rotation_value)
+        
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
         self.ballManipulator.set(ballMotorSetPoint)
@@ -225,11 +233,17 @@ def createTalonAndSlaves(MASTER, slave1, slave2=None):
 
 
 class FakeEncoder:
+    def __init__(self, logger = None):
+        self.logger = logger
+
     def pidGet(self):
         if MISSING_HAL:
             return 0
         else:
-            return hal_data['encoder'][0]['value']
+            encoderValue = hal_data['encoder'][0]['value']
+            if self.logger is not None:
+                self.logger.info("encoder value is %d", encoderValue)
+            return encoderValue
 
     def getPIDSourceType(self):
         return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
