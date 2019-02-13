@@ -1,36 +1,5 @@
 import wpilib
 
-#from subsystems.remoteSensors import AngleSensor, RangeSensor
-#This doesn't seem like it is needed here
-
-#ELEVATOR PID IDs
-#MIN_ELEVATOR_RANGE = 0
-#MAX_ELEVATOR_RANGE = 200
-
-#ELEVATOR STOPS
-#LOW_HATCH_VALUE = 0
-#LOW_CARGO_VALUE = 500
-#MEDIUM_HATCH_VALUE = 1000
-#MEDIUM_CARGO_VALUE = 1500
-#HIGH_HATCH_VALUE = 2000
-#HIGH_CARGO_VALUE = 2500
-
-#LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
-#RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
-#class Elevator:
-#    def __init__(self, motor, encoder_motor=None):
-#        self.encoder_motor = encoder_motor
-#        self.motor = motor
-#
-#    def go_up(self, speed = 1.0):
-#        self.motor.set(speed)
-#
-#    def go_down(self, speed = 1.0):
-#        self.motor.set(-speed)
-#
-#    def stop(self):
-#        self.motor.set(0)
-
 class driverAssistant:
     """
     DriverAssistant provide semi-autonomous driving directed by the remote sensors 
@@ -129,23 +98,16 @@ class driverAssistantController:
         #self.damper = 0
 
     def getOperation(self):
-        #self.damper += 1
-        #triggerAxisValue = self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND)
-        
-        #if self.logger is not None:
-        #    if (self.damper % 50) == 0:
-        #        self.logger.info("triggerAxis(LEFT) value = %f", triggerAxisValue)
-                
-        #whammyBarPressed = (triggerAxisValue > -0.7 and not (triggerAxisValue == 0))
-        #runDriverAssistant = True     # assume running unless no buttons pressed
-                    
+        """
+        Get specific controller button and return True if it
+        is being pressed, False otherwise.
+        """
         if self.controller.getYButton():
             runDriverAssistant = True
             if self.logger is not None:
                 self.logger.info("button Y has been pressed")
         
         else:
-            #setPoint = 0
             runDriverAssistant = False
         
         return runDriverAssistant
