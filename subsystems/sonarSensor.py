@@ -1,9 +1,6 @@
 import wpilib
 import json
-try:
-    from frc1076lib.udp_channel import UDPChannel
-except:
-    from lib1076.udp_channel import UDPChannel
+from lib1076.udp_channel import UDPChannel
 
 class SonarSensor:
     """
@@ -19,6 +16,7 @@ class SonarSensor:
         self.sonar_port = listen_port
         self.logger = logger
         self.range_cm = 0
+        self.createChannel()
 
     def pidGet(self):
         # return cached value that was last receive from
@@ -33,7 +31,7 @@ class SonarSensor:
         sonar_ip = self.sonar_ip
         sonar_port = self.sonar_port
         try:
-            self.channel = UDPChannel(local_ip="10.10.76.2", local_port=5811, 
+            self.channel = UDPChannel(local_ip="127.0.0.1", local_port=5811, 
                                       remote_ip=sonar_ip, remote_port=sonar_port)
         except:
             pass

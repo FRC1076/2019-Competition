@@ -1,9 +1,6 @@
 import wpilib
 import json
-try:
-    from frc1076lib.udp_channel import UDPChannel
-except:
-    from lib1076.udp_channel import UDPChannel
+from lib1076.udp_channel import UDPChannel
 
 class VisionSensor:
     """
@@ -26,6 +23,7 @@ class VisionSensor:
         self.logger = logger
         self.bearing = 0
         self.range_cm = 0
+        self.createChannel()
 
     def pidGetBearing(self):
         # return cached bearing that was last received from
@@ -44,7 +42,7 @@ class VisionSensor:
         vision_ip = self.vision_ip
         vision_port = self.vision_port
         try:
-            self.channel = UDPChannel(local_ip="10.10.76.2", local_port=5880, 
+            self.channel = UDPChannel(local_ip="127.0.0.1", local_port=5880, 
                                       remote_ip=vision_ip, remote_port=vision_port)
         except:
             pass

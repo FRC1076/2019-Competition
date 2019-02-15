@@ -129,6 +129,12 @@ class MyRobot(wpilib.TimedRobot):
         self.pistons_activated = False
         self.forward = 0
 
+        #Vision sensor
+        self.visionSensor = VisionSensor('127.0.0.1', 8812)
+
+        #Sonar sensor
+        self.sonarSensor = SonarSensor('127.0.0.1', 8813)
+
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
@@ -200,11 +206,9 @@ class MyRobot(wpilib.TimedRobot):
         self.ballManipulator.set(ballMotorSetPoint)
 
         # Recieve range from sonarSensor
-        self.sonarSensor = SonarSensor('10.10.76.9', 8813)
         self.sonarSensor.recieveRangeUpdates()
 
         # Recieve angle and range from visionSensor
-        self.visionSensor = VisionSensor('10.10.76.7', 8812)
         self.visionSensor.recieveAngleUpdates()
         
         #If proximity sensor = 0
