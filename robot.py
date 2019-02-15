@@ -73,7 +73,7 @@ class MyRobot(wpilib.TimedRobot):
 
         #DRIVETRAIN
         left = createMasterAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID, LEFT_SLAVE_2_ID)
-        right = createMasterAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID, RIGHT_SLAVE_2_ID)
+        right = createTalonAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID, RIGHT_SLAVE_2_ID)
         self.drivetrain = Drivetrain(left, right, self.gyro)
 
         #HATCH GRABBER
@@ -150,16 +150,27 @@ class MyRobot(wpilib.TimedRobot):
         '''
         Left trigger is go up, Right trigger is go down 
         '''
-        TRIGGER_LEVEL = 0.35
-        TRIGGER_SCALE = 0.2
-        elevator_trigger = deadzone(self.driver.getRawAxis(2), TRIGGER_LEVEL) * TRIGGER_SCALE
-        
-        self.elevator.set(elevator_trigger)
-        
+        # left_trigger = self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND)
+        # right_trigger = self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND)
+
+        # TRIGGER_LEVEL = 0.5
+
+        # if abs(left_trigger) > TRIGGER_LEVEL:
+        #     self.elevator.go_up(self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND))
+        # elif abs(right_trigger) > TRIGGER_LEVEL:
+        #     self.elevator.go_down(self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND))
+        # else:
+        #     self.elevator.stop()
+
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
         if elevateToHeight:
             self.elevatorAttendant.setSetpoint(setPoint)
+            self.elevatorAttendant.move()
+            self.elevator.set(self.elevatorAttendant.getHeightRate())
+        else:
+            self.elevatorAttendant.stop()
+
 
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
