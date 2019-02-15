@@ -187,11 +187,11 @@ class MyRobot(wpilib.TimedRobot):
         5: Hatch Panel grab (piston out). 5+wammy: Hatch Panel release (piston in). (5, z!=0)
         Start: Activate end game with Driver approval (8)
         '''
-      
-        #timer 
-
-        if self.matchtimer.timer.hasPeriodPassed(1):
-            self.logger.info("%d is time up", self.matchtimer.AreWeThereYet())
+        if self.matchtimer.time_left() <= 60:
+            self.logger.info("%d until time is up", self.matchtimer.time_left())
+            self.matchtimer.timer.reset()
+        else:
+            return( None)
 
         #END GAME 
 
