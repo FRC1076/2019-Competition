@@ -96,7 +96,7 @@ class ElevatorController:
             else:
                 setPoint = MEDIUM_HATCH_VALUE
 
-        elif self.controller.getXButton():
+        elif self.controller.getYButton():
             if whammyBarPressed:
                 setPoint = HIGH_CARGO_VALUE
             else:
@@ -112,6 +112,5 @@ class ElevatorController:
             else:
                 setPoint = 0
             runElevator = False
-        
-        return (runElevator, setPoint)
+        return (False, setPoint)
     
