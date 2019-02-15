@@ -34,7 +34,7 @@ RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
 #DRIVETRAIN IDs (talon and victor)
 LEFT_MASTER_ID = 1
 LEFT_SLAVE_1_ID = 2
-LEFT_SLAVE_2_ID = 3
+LEFT_SLAVE_2_ID = 10
 
 RIGHT_MASTER_ID = 4
 RIGHT_SLAVE_1_ID = 5
@@ -61,6 +61,16 @@ PISTON_RETRACT_ID = 5
 RETRACT_ID = 6
 EXTEND_ID = 7
 
+'''
+Raw Axes
+0 L X Axis
+1 L Y Axis
+2 L Trigger
+3 R Trigger
+4 R X Axis
+5 R Y Axis
+'''
+
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
         #assigns driver as controller 0 and operator as controller 1
@@ -72,7 +82,7 @@ class MyRobot(wpilib.TimedRobot):
         self.gyro = wpilib.AnalogGyro(1)
 
         #DRIVETRAIN
-        left = createMasterAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID, LEFT_SLAVE_2_ID)
+        left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID, LEFT_SLAVE_2_ID)
         right = createTalonAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID, RIGHT_SLAVE_2_ID)
         self.drivetrain = Drivetrain(left, right, self.gyro)
 
@@ -98,7 +108,7 @@ class MyRobot(wpilib.TimedRobot):
         )
         
         #ELEVATOR
-        elevator_motor = createMasterAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
+        elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
@@ -121,20 +131,21 @@ class MyRobot(wpilib.TimedRobot):
         max_forward = 1.0
         max_rotate = 1.0
 
-        goal_forward = self.driver.getRawAxis(3)
+        goal_forward = self.driver.getRawAxis(5)
+        #RAW AXIS 5 ON PRACTICE BOARD
         rotation_value = -self.driver.getX(LEFT_CONTROLLER_HAND)
 
-        goal_forward = deadzone(goal_forward * max_forward, deadzone_value)
-        rotation_value = deadzone(rotation_value * max_rotate, deadzone_value)
+        goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
+        rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
 
-        delta = goal_forward - self.forward
+        # delta = goal_forward - self.forward
 
-        if abs(delta) < max_accel:
-            self.forward += delta
-        else:
-            self.forward += max_accel * sign(delta)
+        # if abs(delta) < max_accel:
+        #     self.forward += delta
+        # else:
+        #     self.forward += max_accel * sign(delta)
 
-        self.drivetrain.arcade_drive(self.forward, rotation_value)
+        self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
         #4BAR CONTROL
         '''
@@ -162,6 +173,8 @@ class MyRobot(wpilib.TimedRobot):
         # else:
         #     self.elevator.stop()
 
+
+
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
         if elevateToHeight:
@@ -170,6 +183,9 @@ class MyRobot(wpilib.TimedRobot):
             self.elevator.set(self.elevatorAttendant.getHeightRate())
         else:
             self.elevatorAttendant.stop()
+            self.elevator.set(setPoint)
+            
+
 
 
         # Ball manipulator control
@@ -200,18 +216,20 @@ class MyRobot(wpilib.TimedRobot):
         if release_pistons:
             self.lift.lower_all()
 
-def createMasterAndSlaves(MASTER, slave1, slave2=None):
+def createMasterAndSlaves(MASTER, slave1, slave2):
     '''
     First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
     This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
     '''
     master_talon = ctre.WPI_TalonSRX(MASTER)
+
     slave_talon = ctre.WPI_TalonSRX(slave1)
     slave_talon.follow(master_talon)
     
-    if slave2 is not None:
-        slave_victor = ctre.victorspx.VictorSPX(slave2)
-        slave_victor.follow(master_talon)
+    # if slave2 is not None:
+    slave_victor = ctre.victorspx.VictorSPX(slave2)
+    slave_victor.set(ControlMode.Follower, MASTER)
+    slave_victor.follow(master_talon)
     return master_talon
 
 def createTalonAndSlaves(MASTER, slave1, slave2=None):
