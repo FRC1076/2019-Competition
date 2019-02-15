@@ -13,6 +13,7 @@ MEDIUM_CARGO_VALUE = 1500
 HIGH_HATCH_VALUE = 2000
 HIGH_CARGO_VALUE = 2500
 
+
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
 class Elevator:
@@ -29,9 +30,15 @@ class Elevator:
     def stop(self):
         self.motor.set(0)
 
+    def set(self, setpoint):
+        self.motor.set(setpoint)
+
+    
+
 class ElevatorAttendant:
     def __init__(self, encoder, lowInput, highInput, lowOutput, highOutput):
         self.encoder = encoder
+        self.elevateToHeightRate = 0
 
         kP = 0.01
         kI = 0.00
@@ -51,6 +58,7 @@ class ElevatorAttendant:
     
     def stop(self):
         self.pid.disable()
+        self.elevateToHeightRate = 0
 
     def setSetpoint(self, height):
         self.pid.setSetpoint(height)
@@ -61,6 +69,7 @@ class ElevatorController:
         self.controller = controller
         self.logger = logger
         self.damper = 0
+        
 
     def getOperation(self):
         self.damper += 1
@@ -87,15 +96,21 @@ class ElevatorController:
             else:
                 setPoint = MEDIUM_HATCH_VALUE
 
-        elif self.controller.getXButton():
+        elif self.controller.getYButton():
             if whammyBarPressed:
                 setPoint = HIGH_CARGO_VALUE
             else:
                 setPoint = HIGH_HATCH_VALUE
         
         else:
-            setPoint = 0
+            elevator_speed = self.controller.getRawAxis(2)
+
+            if self.controller.getStartButton(): 
+                setPoint = -elevator_speed
+            elif self.controller.getBackButton():
+                setPoint = elevator_speed
+            else:
+                setPoint = 0
             runElevator = False
-        
-        return (runElevator, setPoint)
+        return (False, setPoint)
     
