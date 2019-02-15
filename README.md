@@ -21,7 +21,7 @@ Pip
 ===
 Get the python modules required for this project:
 pip install -r requirements.txt
-
+windows: py -3 -m pip install -r requirements.txt
 PIP Website:
 https://pip.pypa.io/en/stable/reference/
 
