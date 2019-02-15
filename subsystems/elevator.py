@@ -103,12 +103,12 @@ class ElevatorController:
                 setPoint = HIGH_HATCH_VALUE
         
         else:
-            rotation_speed = self.controller.getRawAxis(2)
+            elevator_speed = self.controller.getRawAxis(2)
 
             if self.controller.getStartButton(): 
-                setPoint = -rotation_speed
+                setPoint = -elevator_speed
             elif self.controller.getBackButton():
-                setPoint = rotation_speed
+                setPoint = elevator_speed
             else:
                 setPoint = 0
             runElevator = False
