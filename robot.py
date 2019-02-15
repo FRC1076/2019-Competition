@@ -31,6 +31,9 @@ from subsystems.ballManipulator import BallManipulator, BallManipulatorControlle
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
 
+#PCM CAN IDs
+PCM_CAN_ID = 0
+
 #DRIVETRAIN IDs (talon and victor)
 LEFT_MASTER_ID = 1
 LEFT_SLAVE_1_ID = 2
@@ -88,14 +91,14 @@ class MyRobot(wpilib.TimedRobot):
 
         #HATCH GRABBER
         self.grabber = Grabber(
-            hatch = wpilib.DoubleSolenoid(5, EXTEND_ID, RETRACT_ID))
+            hatch = wpilib.DoubleSolenoid(PCM_CAN_ID, EXTEND_ID, RETRACT_ID))
 
         #ball manipulator and controller
         self.ballManipulator = BallManipulator(ctre.WPI_TalonSRX(BALL_MANIP_ID))
         self.ballManipulatorController = BallManipulatorController(self.operator, self.logger)
 
         #EXTEND HATCH GRABBER 
-        self.piston = extendPiston(piston=wpilib.DoubleSolenoid(4, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
+        self.piston = extendPiston(piston=wpilib.DoubleSolenoid(PCM_CAN_ID, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
 
         #LIFT
         '''
