@@ -173,7 +173,7 @@ class MyRobot(wpilib.TimedRobot):
         # else:
         #     self.elevator.stop()
         
-        # manuel and autonomis driving will go here
+        # manual and autonomous driving will go here
         self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
 
