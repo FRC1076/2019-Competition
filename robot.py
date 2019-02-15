@@ -27,6 +27,8 @@ from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
 from subsystems.ballManipulator import BallManipulator, BallManipulatorController
+from subsystems.sonarSensor import SonarSensor
+from subsystems.visionSensor import VisionSensor
 
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
@@ -164,6 +166,14 @@ class MyRobot(wpilib.TimedRobot):
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
         self.ballManipulator.set(ballMotorSetPoint)
+
+        # Recieve range from sonarSensor
+        self.sonarSensor = SonarSensor('10.10.76.9', 8813)
+        self.sonarSensor.recieveRangeUpdates()
+
+        # Recieve angle and range from visionSensor
+        self.visionSensor = VisionSensor('10.10.76.7', 8812)
+        self.visionSensor.recieveAngleUpdates()
         
         #If proximity sensor = 0
             #self.encoder.reset()
