@@ -20,8 +20,12 @@ Example contents:
 Pip
 ===
 Get the python modules required for this project:
-pip install -r requirements.txt
-windows: py -3 -m pip install -r requirements.txt
+    mac and linux: pip install -r requirements.txt
+    windows:       py -3 -m pip install -r requirements.txt
+    
+    On the Mac, if pygame is crashing, you may want to also upgrade to pygame==1.9.5dev0
+        e.g.  pip install pygame==1.9.5dev0
+        
 PIP Website:
 https://pip.pypa.io/en/stable/reference/
 
