@@ -145,7 +145,7 @@ class MyRobot(wpilib.TimedRobot):
         # else:
         #     self.forward += max_accel * sign(delta)
 
-        self.drivetrain.arcade_drive(goal_forward, rotation_value)
+        
 
         #4BAR CONTROL
         '''
@@ -172,7 +172,9 @@ class MyRobot(wpilib.TimedRobot):
         #     self.elevator.go_down(self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND))
         # else:
         #     self.elevator.stop()
-
+        
+        # manuel and autonomis driving will go here
+        self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
 
         #ELEVATOR CONTROL
