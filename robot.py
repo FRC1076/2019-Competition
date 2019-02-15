@@ -106,8 +106,8 @@ class MyRobot(wpilib.TimedRobot):
         space on the solenoid module.
         '''
         self.lift = Lift(
-                wpilib.DoubleSolenoid(CENTER_EXTEND_ID, CENTER_RETRACT_ID), 
-                wpilib.DoubleSolenoid(BACK_EXTEND_ID, BACK_RETRACT_ID)
+                wpilib.DoubleSolenoid(PCM_CAN_ID, CENTER_EXTEND_ID, CENTER_RETRACT_ID), 
+                wpilib.DoubleSolenoid(PCM_CAN_ID, BACK_EXTEND_ID, BACK_RETRACT_ID)
         )
         
         #ELEVATOR
