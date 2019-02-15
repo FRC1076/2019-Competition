@@ -1,6 +1,6 @@
 #GENERAL PYTHON
 import math
-import time
+
 #GENERAL ROBOT
 import ctre 
 import wpilib
