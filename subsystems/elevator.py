@@ -24,7 +24,7 @@ class Elevator:
     def go_up(self, speed = 1.0):
         self.motor.set(speed)
 
-    def go_down(self, speed = 1.0):
+    def go_down(self, speed = 0.5):
         self.motor.set(-speed)
 
     def stop(self):
@@ -106,7 +106,7 @@ class ElevatorController:
             elevator_speed = self.controller.getRawAxis(2)
 
             if self.controller.getStartButton(): 
-                setPoint = -elevator_speed
+                setPoint = -(elevator_speed/2)
             elif self.controller.getBackButton():
                 setPoint = elevator_speed
             else:

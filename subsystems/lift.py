@@ -25,10 +25,10 @@ class Lift:
     def lower_back(self):
         self.back.set(Lift.stateRetract)
 
-    def lower_all(self):
+    def lower_all(self): 
         self.lower_center()
         self.lower_back()
 
     def raise_all(self):
         self.raise_center()
-        self.lower_center()
+        self.raise_center()
