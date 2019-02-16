@@ -51,9 +51,21 @@ class BallManipulatorController:
         whammyBarPressed = (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) > -0.9
                    and not (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) == 0))
         
+        strum = self.controller.getPOV()
+
+        
+
         setPoint = STOP_SPEED
         rotation_speed = self.controller.getRawAxis(2)
+
         if self.controller.getXButton():
+            if (strum == -1):
+                setPoint = rotation_speed
+            else:
+                setPoint = -rotation_speed
+        
+
+        if self.controller.getYButton():
             if whammyBarPressed:
                 setPoint = rotation_speed
             else:
@@ -62,5 +74,6 @@ class BallManipulatorController:
             if self.logger is not None:
                 self.logger.info("BallManipulatorController: button Y has been pressed")
                 self.logger.info("%s whammy bar", "WITH" if whammyBarPressed else "WITHOUT")
-                self.logger.info("%d X Button value", rotation_speed )
+                self.logger.info("%d Rotation Speed", rotation_speed )
+                self.logger.info("%d Operator POV", strum)
         return setPoint

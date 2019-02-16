@@ -20,6 +20,8 @@ except ModuleNotFoundError as e:
     print("Missing hal_data. Ignore.")
     MISSING_HAL = True
 
+import robotpy_ext.common_drivers
+
 #OUR ROBOT SYSTEMS AND LIBRARIES
 from subsystems.drivetrain import Drivetrain
 from subsystems.elevator import Elevator, ElevatorAttendant, ElevatorController
@@ -57,16 +59,17 @@ CENTER_RETRACT_ID = 1
 BACK_EXTEND_ID = 2
 BACK_RETRACT_ID = 3
 
-#HATCH GRABBER PISTON IDs (solenoid)
+#4bar (solenoid)
 PISTON_EXTEND_ID = 4
 PISTON_RETRACT_ID = 5
 
+#hatch 
 RETRACT_ID = 6
 EXTEND_ID = 7
 
 '''
 Raw Axes
-0 L X Axis
+0 L X Axi
 1 L Y Axis
 2 L Trigger
 3 R Trigger
@@ -100,6 +103,8 @@ class MyRobot(wpilib.TimedRobot):
         #EXTEND HATCH GRABBER 
         self.piston = extendPiston(piston=wpilib.DoubleSolenoid(PCM_CAN_ID, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
 
+        
+
         #LIFT
         '''
         The lift is being controlled by four pistons, but two doublesolenoids due to electrical chaining 4 together to make
@@ -112,6 +117,7 @@ class MyRobot(wpilib.TimedRobot):
         
         #ELEVATOR
         elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
+        #elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
@@ -124,8 +130,9 @@ class MyRobot(wpilib.TimedRobot):
 
     def teleopInit(self):
         """Executed at the start of teleop mode"""
-        self.pistons_activated = False
+        
         self.forward = 0
+        
 
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
@@ -154,11 +161,21 @@ class MyRobot(wpilib.TimedRobot):
         '''
         Left bumper = retract intake (piston in)
         Right bumper = extend intake beyond frame perimeter (piston out)
+
         '''
+
+        triggerAxisValue = self.operator.getTriggerAxis(LEFT_CONTROLLER_HAND)
+        whammyBarPressed = (triggerAxisValue > -0.9 and not (triggerAxisValue == 0))
+
         if self.driver.getBumper(LEFT_CONTROLLER_HAND):
             self.piston.extend()
         elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
             self.piston.retract()
+
+        if self.operator.getBumper(LEFT_CONTROLLER_HAND):
+            self.grabber.extend()
+        else:
+            self.grabber.retract()
 
         #DRIVER TEMPORARY ELEVATOR CONTROL 
         '''
@@ -212,14 +229,29 @@ class MyRobot(wpilib.TimedRobot):
         '''
 
         #END GAME 
-
-        activate_pistons = self.operator.getStartButton() and self.driver.getStartButton()
-        release_pistons = self.operator.getBackButton() and self.driver.getStartButton()
+        triggerAxisValue = self.operator.getTriggerAxis(LEFT_CONTROLLER_HAND)
+        whammy_down = (triggerAxisValue > -0.9 and not (triggerAxisValue == 0))
+        
+        activate_pistons = self.driver.getStartButton() and whammy_down
+        release_pistons = self.driver.getBackButton() 
 
         if activate_pistons:
-            self.lift.raise_all()
-        if release_pistons:
-            self.lift.lower_all()
+            self.lift.lower_center()
+            self.lift.lower_back()
+            print("raise all")
+
+        elif release_pistons:
+            self.lift.raise_back()
+            self.lift.raise_center()
+            ("lower")
+
+        
+
+
+        # if release_pistons:
+        #     self.lift.lower_all()
+
+        
 
 def createMasterAndSlaves(MASTER, slave1, slave2):
     '''
