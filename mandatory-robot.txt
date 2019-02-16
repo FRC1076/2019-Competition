@@ -1,5 +1,5 @@
-                                                         Feb 14, 2019
-                                                         Version 1.3
+                                                         Feb 16, 2019
+                                                         Version 1.4
 
 https://github.com/FRC1076/2019-Competition/edit/master/mandatory-robot.txt
 Printed versions of this document are considered obsolete.
@@ -37,11 +37,11 @@ The following are electrical and hardware requirements as specified by software 
 
 8. Motor controller ID assignments to be set/wired before giving the robot to software.
     
-    Can ID for drivetrain:
+    Can ID for drivetrain:  (post weight-loss program)
       
-     Left Side:    1, 2, 3  (1 is master, 3 is the Victor follower, 2 is follower)
-     Right Side:   4, 5, 6  (4 is master, 6 is the Victor follower, 5 is follower)
-     Elevator:     7, 8     (encoder breakout from 7)
+     Left Side:    1, 2  (1 is master, 2 is follower)
+     Right Side:   4, 5  (4 is master, 5 is follower)
+     Elevator:     7, 8  (encoder breakout from 7)
      Ball Intake   9
        
      Pneumatics: (module: extend, retract)
@@ -49,8 +49,6 @@ The following are electrical and hardware requirements as specified by software 
             0: 2,3:     Rear pistons (ganged left and right)
             0: 4,5:     Deploy Intake
             0: 6,7:     Hatchgrabber
-  
-
 
 Assigned IP Addresses:
 
