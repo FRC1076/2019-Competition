@@ -27,7 +27,7 @@ from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
 from subsystems.ballManipulator import BallManipulator, BallManipulatorController
-
+from subsystems.time_keeper import MatchTimer
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
 
@@ -73,6 +73,8 @@ Raw Axes
 4 R X Axis
 5 R Y Axis
 '''
+#Teleop duration
+TELEOP_DURATION_SECONDS = 135
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
@@ -126,6 +128,7 @@ class MyRobot(wpilib.TimedRobot):
         """Executed at the start of teleop mode"""
         self.pistons_activated = False
         self.forward = 0
+        self.matchtimer = MatchTimer(TELEOP_DURATION_SECONDS)
 
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
@@ -210,6 +213,16 @@ class MyRobot(wpilib.TimedRobot):
         5: Hatch Panel grab (piston out). 5+wammy: Hatch Panel release (piston in). (5, z!=0)
         Start: Activate end game with Driver approval (8)
         '''
+
+        #Timer
+
+        time_left = self.matchtimer.time_left()
+        if time_left is not None:
+            self.logger.info("%d is time up",  time_left)
+
+
+
+
 
         #END GAME 
 
