@@ -118,6 +118,12 @@ class MyRobot(wpilib.TimedRobot):
         self.encoder = FakeEncoder()
         self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
 
+    #autonomous with teleop
+    def autonomousInit(self): 
+        self.teleopInit() 
+    
+    def autonomousPeriodic(self): 
+        self.teleopPeriodic() 
 
     def robotPeriodic(self):
         pass
