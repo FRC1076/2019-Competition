@@ -63,7 +63,7 @@ RETRACT_ID = 6
 EXTEND_ID = 7
 
 #Teleop duration
-TELEOP_DURATION_SECONDS = 150
+TELEOP_DURATION_SECONDS = 135
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
         #assigns driver as controller 0 and operator as controller 1
@@ -187,11 +187,10 @@ class MyRobot(wpilib.TimedRobot):
         5: Hatch Panel grab (piston out). 5+wammy: Hatch Panel release (piston in). (5, z!=0)
         Start: Activate end game with Driver approval (8)
         '''
-        if self.matchtimer.time_left() <= 60:
-            self.logger.info("%d until time is up", self.matchtimer.time_left())
-            self.matchtimer.timer.reset()
-        else:
-            return( None)
+        
+        time_left = self.matchtimer.time_left()
+        if time_left is not None:
+            self.logger.info("%d is time up",  time_left)
 
         #END GAME 
 

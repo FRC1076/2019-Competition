@@ -1,21 +1,27 @@
 import time
 import wpilib
 
-#Teleop duration
-TELEOP_DURATION_SECONDS = 37
-
-
 class MatchTimer:
 
     def __init__(self, duration):
-        self.duration = TELEOP_DURATION_SECONDS
-        self.timer = wpilib.Timer()
-        self.timer.reset()
-        self.timer.start()
+        self.duration = duration
+        self.MatchTime = wpilib.Timer()
+        self.MatchTime.reset()
+        self.MatchTime.start()
+        self.duration = duration    
+        self.NotifyTimer = wpilib.Timer()
+        self.NotifyTimer.reset()
+        self.NotifyTimer.start()
 
-    def time_left(self):
-        if self.timer.hasPeriodPassed(1):
-            self.time = (self.duration - 1)
-            return (self.time)
-        else:
-            return (0)
+    def time_left(self):     
+        if self.NotifyTimer.hasPeriodPassed(1):
+            self.NotifyTimer.reset()
+            return (int(self.duration - self.MatchTime.get()))
+        else: 
+            return(None)
+
+x = MatchTimer(215)
+print(x.time_left())
+print(x.time_left())
+print(x.time_left())
+print(x.time_left())
