@@ -1,3 +1,7 @@
+# simple utility to connect to sonar sensor at .11
+# and log the range-cm it returns.
+#
+
 from subsystems.sonarSensor import SonarSensor
 import time
 import logging
