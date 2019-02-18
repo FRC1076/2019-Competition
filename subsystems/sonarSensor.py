@@ -9,14 +9,14 @@ class SonarSensor:
     for PIDController object.
 
     Example:
-        sonarSensor = SonarSensor('10.10.76.9', 8813)
+        sonarSensor = SonarSensor('10.10.76.11', 5811)
     """
     def __init__(self, sensor_ip, listen_port, logger=None):
         self.sonar_ip = sensor_ip
         self.sonar_port = listen_port
         self.logger = logger
         self.range_cm = 0
-        self.createChannel()
+        self.channel = self.createChannel()
 
     def pidGet(self):
         # return cached value that was last receive from
@@ -31,24 +31,31 @@ class SonarSensor:
         sonar_ip = self.sonar_ip
         sonar_port = self.sonar_port
         try:
-            self.channel = UDPChannel(local_ip="127.0.0.1", local_port=5811, 
-                                      remote_ip=sonar_ip, remote_port=sonar_port)
+            channel = UDPChannel(local_ip="10.10.76.2", local_port=sonar_port, 
+                                 remote_ip=sonar_ip, remote_port=sonar_port)
         except:
-            pass
+            channel = None
+        return channel
 
-    def recieveRangeUpdates(self):
+    def receiveRangeUpdates(self):
         if self.channel is None:
-            self.createChannel()
+            if self.logger is not None:
+                self.logger.info("Retrying to create the channel")
+                print("Retry to create channel...")
+            self.channel = self.createChannel()
         else:
             (message, sender) = self.channel.receive_from()
             if message is not None:
+                self.logger.info("Received :",message)
                 try:
                     message_dict = json.loads(message)
                     try:
-                        self.range_cm = message_dict['range']
-                        return self.range_cm
+                        self.range_cm = message_dict['range-cm']
                     except KeyError:
                         if self.logger is not None:
-                            self.logger.error("No range in message %s", message)
+                            self.logger.error("No range-cm in message %s", message)
+                            print("No range-cm in message")
                 except json.decoder.JSONDecodeError:
-                    message_dict = None
+                    # leave the self.range_cm value alone
+                    if self.logger is not None:
+                        self.logger.error("json parsing error, message: ",message)
