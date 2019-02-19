@@ -117,8 +117,19 @@ class MyRobot(wpilib.TimedRobot):
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
+
+        # remote sensors
+        #Vision sensor
+        self.visionSensor = VisionSensor('127.0.0.1', 8812)
+
+        #Sonar sensor
+        self.sonarSensor = SonarSensor('127.0.0.1', 8811)
+
+        # Elevator height sonar sensor
+        self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811)
+
         self.encoder = FakeEncoder()
-        self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
+        self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.2, 0.2)
 
 
     def robotPeriodic(self):
@@ -129,11 +140,7 @@ class MyRobot(wpilib.TimedRobot):
         self.pistons_activated = False
         self.forward = 0
 
-        #Vision sensor
-        self.visionSensor = VisionSensor('127.0.0.1', 8812)
-
-        #Sonar sensor
-        self.sonarSensor = SonarSensor('127.0.0.1', 8813)
+        
 
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
@@ -199,17 +206,15 @@ class MyRobot(wpilib.TimedRobot):
             self.elevator.set(setPoint)
             
 
-
-
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
         self.ballManipulator.set(ballMotorSetPoint)
 
         # Recieve range from sonarSensor
-        self.sonarSensor.recieveRangeUpdates()
+        self.sonarSensor.receiveRangeUpdates()
 
         # Recieve angle and range from visionSensor
-        self.visionSensor.recieveAngleUpdates()
+        self.visionSensor.receiveAngleUpdates()
         
         #If proximity sensor = 0
             #self.encoder.reset()

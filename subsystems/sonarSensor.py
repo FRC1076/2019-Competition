@@ -46,7 +46,7 @@ class SonarSensor:
         else:
             (message, sender) = self.channel.receive_from()
             if message is not None:
-                self.logger.info("Received :",message)
+                self.logger.info("Received %s from %s", message, sender)
                 try:
                     message_dict = json.loads(message)
                     try:
