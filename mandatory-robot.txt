@@ -1,5 +1,5 @@
-                                                         Feb 16, 2019
-                                                         Version 1.4
+                                                         Feb 18, 2019
+                                                         Version 1.5
 
 https://github.com/FRC1076/2019-Competition/edit/master/mandatory-robot.txt
 Printed versions of this document are considered obsolete.
@@ -10,19 +10,17 @@ The following are electrical and hardware requirements as specified by software 
 1. Dual sonar mounts on front of robot in a position that will permit the sonar to
    determine if the robot is square to the pickup delivery points.
     a. mounts
-    b. 5v power connection to Arduino
-    c. 3wires from Arduino to each of the sonar units  (see software for wiring diagram)
+    b. three wires each, to Rio (5v power, ground, and to an analog input pin)
 
-2. Proximity sensor to detect if the elevator is all the way at the bottom.
-   Check wiring, wire to RoboRio analog pin as appropriate.    Tell us what pin.
-   You'll need to read the specs on the voltage ranges to make sure they are compatible
-   with the input voltages accepted by the Rio.
+2. Limit switch to stop downward elevator motion.   This should be wired to the
+   reverse limit switch pin of the master elevator drive motor controller #7 breakout.
+   That is, unless motor forward drives the elevator down, then, instead is should be
+   connected to the forward limit switch.
 
-3. NeoMatrix panels 4 on each side of the robot, each side powered by a 5v supply and
-   controlled by an arduino mega with ethernet shield.    One controller per side.
+3. scratch lights.  No weight allowance for them.
 
 4. Encoder mounted on the elevator drivetrain.  (need breakout connected to a motor
-   controller powering the elevator.)    Need this soon, we can debug this code.
+   controller powering the elevator #7.)    Need this soon, so we can debug this code.
 
 5. Drivercamera, wired into ethernet hub.  Powered by 5v phone charger battery.
    (need mounting places for both battery and the Pi case/camera.)
@@ -30,7 +28,10 @@ The following are electrical and hardware requirements as specified by software 
    Drivercamera must be able to see when delivering hatch and/or ball.
    It can be used for alignment, so should be able to see the floor in front of the robot.
    
+   Does it need a fisheye lens in order to do that?
+   
 6. Sony eyecam pointed at the floor at center axis to support line following/alignment.
+   May prefer pointing at vision targets.   Will need a light ring if that is the case, though.
 
 7. 5 port ethernet hub (powered by 5v, 3.5 mm Barrel connector, rated at 600 milliamps)
    We need to be able to access the ports.  
@@ -41,7 +42,7 @@ The following are electrical and hardware requirements as specified by software 
       
      Left Side:    1, 2  (1 is master, 2 is follower)
      Right Side:   4, 5  (4 is master, 5 is follower)
-     Elevator:     7, 8  (encoder breakout from 7)
+     Elevator:     7, 8  (encoder breakout from 7, also for limit switch (at bottom))
      Ball Intake   9
        
      Pneumatics: (module: extend, retract)
@@ -54,6 +55,6 @@ Assigned IP Addresses:
 
   Robot   10.10.76.2
   Vision  10.10.76.13 port 5880
-  Sonar   10.10.76.11 port 5811
-  DriverCam  10.10.76.17 or 10.10.76.19  (FRC approved port numbers)
+  Sonar   10.10.76.11 port 5811  (Single unit, Elevator height)
+  DriverCam  10.10.76.17 or 10.10.76.19  (FRC approved port numbers)   5807 and 5809 for now.
   Lights  10.10.76.7  port 5807
