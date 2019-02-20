@@ -73,13 +73,14 @@ class ElevatorController:
 
     def getOperation(self):
         self.damper += 1
-        triggerAxisValue = self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND)
+        WHAMMY_BAR_RAW_AXIS_INDEX = 4
+        triggerAxisValue = self.controller.getRawAxis(WHAMMY_BAR_RAW_AXIS_INDEX)
         
         if self.logger is not None:
             if (self.damper % 50) == 0:
-                self.logger.info("triggerAxis(LEFT) value = %f", triggerAxisValue)
+                self.logger.info("getRawAxis(WHAMMY) value = %f", triggerAxisValue)
                 
-        whammyBarPressed = (triggerAxisValue > -0.9 and not (triggerAxisValue == 0))
+        whammyBarPressed = (triggerAxisValue > -0.7 and not (triggerAxisValue == 0))
         runElevator = True     # assume running unless no buttons pressed
                     
         if self.controller.getAButton():

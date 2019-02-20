@@ -48,12 +48,11 @@ class BallManipulatorController:
         Detect the Y with or without whammy and return a setpoint for
         the manipulator motor to use.
         """
-        whammyBarPressed = (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) > -0.9
-                   and not (self.controller.getTriggerAxis(LEFT_CONTROLLER_HAND) == 0))
-        
+        WHAMMY_BAR_RAW_AXIS_INDEX = 4
+        rawAxisValue = self.controller.getRawAxis(WHAMMY_BAR_RAW_AXIS_INDEX)
+        whammyBarPressed = (rawAxisValue > -0.7
+                   and not (rawAxisValue == 0))
         strum = self.controller.getPOV()
-
-        
 
         setPoint = STOP_SPEED
         rotation_speed = self.controller.getRawAxis(2)

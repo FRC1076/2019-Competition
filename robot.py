@@ -227,23 +227,21 @@ class MyRobot(wpilib.TimedRobot):
         '''
 
         #END GAME 
-        triggerAxisValue = self.operator.getTriggerAxis(LEFT_CONTROLLER_HAND)
-        whammy_down = (triggerAxisValue > -0.9 and not (triggerAxisValue == 0))
-        
+        whammyAxis = self.operator.getRawAxis(4)
+        whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
+
         activate_pistons = self.driver.getStartButton() and whammy_down
         release_pistons = self.driver.getBackButton() 
 
         if activate_pistons:
             self.lift.lower_center()
             self.lift.lower_back()
-            print("raise all")
+            self.logger.info("Raising all!")
 
         elif release_pistons:
             self.lift.raise_back()
             self.lift.raise_center()
-            ("lower")
-
-        
+            self.logger.info("Lower all!")
 
 
         # if release_pistons:
