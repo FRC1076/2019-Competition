@@ -6,11 +6,11 @@ class Grabber:
     def __init__(self, hatch):
         self.hatch = hatch
 
-    def lower_down(self):
-        self.hatch.set(Grabber.stateRetract)
-    
-    def raise_up(self):
+    def extend(self):
         self.hatch.set(Grabber.stateExtend)
+    
+    def retract(self):
+        self.hatch.set(Grabber.stateRetract)
 
 
 
