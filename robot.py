@@ -161,10 +161,6 @@ class MyRobot(wpilib.TimedRobot):
         Right bumper = extend intake beyond frame perimeter (piston out)
 
         '''
-
-        triggerAxisValue = self.operator.getTriggerAxis(LEFT_CONTROLLER_HAND)
-        whammyBarPressed = (triggerAxisValue > -0.9 and not (triggerAxisValue == 0))
-
         if self.driver.getBumper(LEFT_CONTROLLER_HAND):
             self.piston.extend()
         elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
