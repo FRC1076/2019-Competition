@@ -114,8 +114,8 @@ class MyRobot(wpilib.TimedRobot):
         )
         
         #ELEVATOR
-        elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
-        #elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
+        #elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
+        elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
