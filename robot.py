@@ -4,6 +4,7 @@ import math
 #GENERAL ROBOT
 import ctre 
 import wpilib
+from navx import AHRS
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
 try:
@@ -23,7 +24,7 @@ except ModuleNotFoundError as e:
 import robotpy_ext.common_drivers
 
 #OUR ROBOT SYSTEMS AND LIBRARIES
-from subsystems.drivetrain import Drivetrain
+from subsystems.drivetrain import Drivetrain, DriverController, DriverAttendant
 from subsystems.elevator import Elevator, ElevatorAttendant, ElevatorController
 from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
@@ -83,7 +84,7 @@ class MyRobot(wpilib.TimedRobot):
         self.driver = wpilib.XboxController(0)
         self.operator = wpilib.XboxController(1)
         self.elevatorController = ElevatorController(self.operator, self.logger)
-
+        self.driverController = DriverController(self.driver, self.logger)
         #GYRO
         self.gyro = wpilib.AnalogGyro(1)
 
@@ -120,8 +121,11 @@ class MyRobot(wpilib.TimedRobot):
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
         self.encoder = FakeEncoder()
-        self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
 
+        self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
+        self.driverAttendant = DriverAttendant(self.gyro, -180, 179.9, -0.2, 0.2)
+
+        
 
     def robotPeriodic(self):
         pass
@@ -134,7 +138,7 @@ class MyRobot(wpilib.TimedRobot):
 
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
-        deadzone_value = 0.2
+        deadzone_value = 0.15
         max_accel = 0.3
         max_forward = 1.0
         max_rotate = 1.0
@@ -188,8 +192,17 @@ class MyRobot(wpilib.TimedRobot):
         #     self.elevator.stop()
         
         # manual and autonomous driving will go here
-        self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
+        (turnCorrection, setPoint) = self.driverController.getOperation()
+
+        if turnCorrection:
+            self.driverAttendant.move()
+            rotation_value = self.driverAttendant.getTurnRate()
+        else:
+            self.driverAttendant.stop()
+            rotation_value = deadzone(self.driver.getX(), deadzone_value)
+
+        self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
@@ -263,7 +276,7 @@ def createMasterAndSlaves(MASTER, slave1, slave2):
     
     # if slave2 is not None:
     slave_victor = ctre.victorspx.VictorSPX(slave2)
-    slave_victor.set(ControlMode.Follower, MASTER)
+    #slave_victor.set(ControlMode.Follower, MASTER)
     slave_victor.follow(master_talon)
     return master_talon
 
