@@ -114,8 +114,8 @@ class MyRobot(wpilib.TimedRobot):
         )
         
         #ELEVATOR
-        #elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
-        elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
+        elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
+        #elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
@@ -223,21 +223,21 @@ class MyRobot(wpilib.TimedRobot):
         '''
 
         #END GAME 
-        whammyAxis = self.operator.getRawAxis(4)
-        whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
+        # whammyAxis = self.operator.getRawAxis(4)
+        # whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
 
-        activate_pistons = self.driver.getStartButton() and whammy_down
-        release_pistons = self.driver.getBackButton() 
+        # activate_pistons = self.driver.getStartButton() and whammy_down
+        # release_pistons = self.driver.getBackButton() 
 
-        if activate_pistons:
-            self.lift.lower_center()
-            self.lift.lower_back()
-            self.logger.info("Raising all!")
+        # if activate_pistons:
+        #     self.lift.lower_center()
+        #     self.lift.lower_back()
+        #     self.logger.info("Raising all!")
 
-        elif release_pistons:
-            self.lift.raise_back()
-            self.lift.raise_center()
-            self.logger.info("Lower all!")
+        # elif release_pistons:
+        #     self.lift.raise_back()
+        #     self.lift.raise_center()
+        #     self.logger.info("Lower all!")
 
 
         # if release_pistons:
