@@ -1,5 +1,5 @@
-                                                         Feb 18, 2019
-                                                         Version 1.5
+                                                         Feb 27, 2019
+                                                         Version 1.6
 
 https://github.com/FRC1076/2019-Competition/edit/master/mandatory-robot.txt
 Printed versions of this document are considered obsolete.
@@ -7,22 +7,12 @@ Printed versions of this document are considered obsolete.
 The following are electrical and hardware requirements as specified by software team.
 (refine these/expand on them)
 
-1. Dual sonar mounts on front of robot in a position that will permit the sonar to
-   determine if the robot is square to the pickup delivery points.
-    a. mounts
-    b. three wires each, to Rio (5v power, ground, and to an analog input pin)
+Reordered in priority order.
 
-2. Limit switch to stop downward elevator motion.   This should be wired to the
-   reverse limit switch pin of the master elevator drive motor controller #7 breakout.
-   That is, unless motor forward drives the elevator down, then, instead is should be
-   connected to the forward limit switch.
+1. 5 port ethernet hub (powered by 5v, 3.5 mm Barrel connector, rated at 600 milliamps)
+   We need to be able to access the ports.   It this done? 
 
-3. scratch lights.  No weight allowance for them.
-
-4. Encoder mounted on the elevator drivetrain.  (need breakout connected to a motor
-   controller powering the elevator #7.)    Need this soon, so we can debug this code.
-
-5. Drivercamera, wired into ethernet hub.  Powered by 5v phone charger battery.
+2. Drivercamera, wired into ethernet hub.  Powered by 5v phone charger battery.
    (need mounting places for both battery and the Pi case/camera.)
    
    Drivercamera must be able to see when delivering hatch and/or ball.
@@ -30,13 +20,38 @@ The following are electrical and hardware requirements as specified by software 
    
    Does it need a fisheye lens in order to do that?
    
-6. Sony eyecam pointed at the floor at center axis to support line following/alignment.
-   May prefer pointing at vision targets.   Will need a light ring if that is the case, though.
+3. Downward facing simple sonar unit (wired over 4-wire cable through the cable management.)
+   This is to be connected to Arduino and then Ethernet, or else wired directly to the
+   Rio.   Either solution gets us periodic sonar measurements.     Sonar should be directed
+   at the floor from the bottom of the ball handler with suffient protection to prevent it from
+   getting broken during reverse hab dive.   It might be necessary to aim the unit slightly away
+   from the robot to avoid picking up robot parts in the returns.
 
-7. 5 port ethernet hub (powered by 5v, 3.5 mm Barrel connector, rated at 600 milliamps)
-   We need to be able to access the ports.  
+4. Limit switch to stop downward elevator motion.   This should be wired to the
+   reverse limit switch pin of the master elevator drive motor controller #7 breakout.
+   That is, unless motor forward drives the elevator down, then, instead is should be
+   connected to the forward limit switch.
 
-8. Motor controller ID assignments to be set/wired before giving the robot to software.
+5. Sony eyecam pointed at vision targets on the hatch panel holes.    Will need a 
+   light ring.   Can use 12v LED ring or piggy-back off
+   of the Arduino on the electronics board.  (that would require 3-wire conductor
+   running over the handler to power the ring.)
+   Needs legit/protected mounting location and wiring over the cable management.
+
+6. Dual sonar mounts on front of robot in a position that will permit the sonar to
+   determine if the robot is square to the pickup delivery points.
+    a. mounts
+    b. three wires each, to Rio (5v power, ground, and to an analog input pin)
+    
+7. scratch lights.  No weight allowance for them.
+
+8. Scratch encoder.   There appears to be insufficient will to get this done.
+
+   Encoder mounted on the elevator drivetrain.  (need breakout connected to a motor
+   controller powering the elevator #7.)
+   
+   
+9. Motor controller ID assignments to be set/wired before giving the robot to software.
     
     Can ID for drivetrain:  (post weight-loss program)
       
@@ -55,6 +70,6 @@ Assigned IP Addresses:
 
   Robot   10.10.76.2
   Vision  10.10.76.13 port 5880
-  Sonar   10.10.76.11 port 5811  (Single unit, Elevator height)
-  DriverCam  10.10.76.17 or 10.10.76.19  (FRC approved port numbers)   5807 and 5809 for now.
-  Lights  10.10.76.7  port 5807
+  Sonar   10.10.76.11 port 5811  (sketch Arduino1076/examples/UDPSonar)
+  DriverCam  10.10.76.17   (FRC approved port numbers:   5807)
+  Lights  10.10.76.23  port 5823
