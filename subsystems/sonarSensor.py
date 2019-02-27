@@ -16,6 +16,14 @@ class SonarSensor:
         self.sonar_port = listen_port
         self.logger = logger
         self.simulation = simulation
+        if self.simulation is False:
+            self.SONAR_IP = self.sonar_ip
+            self.SONAR_PORT = self.sonar_port
+            self.LOCAL_IP = "10.10.76.2"
+        else:
+            self.SONAR_IP = "127.0.0.1"
+            self.SONAR_PORT = 8813
+            self.LOCAL_IP = "127.0.0.1"
         self.range_cm = 0
         self.channel = self.createChannel()
 
@@ -29,18 +37,9 @@ class SonarSensor:
         return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
 
     def createChannel(self):
-        if self.simulation is False:
-            SONAR_IP = self.sonar_ip
-            SONAR_PORT = self.sonar_port
-            LOCAL_IP = "10.10.76.2"
-        else:
-            SONAR_IP = "127.0.0.1"
-            SONAR_PORT = 8813
-            LOCAL_IP = "127.0.0.1"
-        
         try:
-            channel = UDPChannel(local_ip=LOCAL_IP, local_port=SONAR_PORT, 
-                                 remote_ip=SONAR_IP, remote_port=SONAR_PORT)
+            channel = UDPChannel(local_ip=self.LOCAL_IP, local_port=self.SONAR_PORT, 
+                                 remote_ip=self.SONAR_IP, remote_port=self.SONAR_PORT)
         except:
             channel = None
         return channel

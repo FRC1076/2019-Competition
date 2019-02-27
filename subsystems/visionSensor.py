@@ -22,6 +22,14 @@ class VisionSensor:
         self.vision_port = listen_port
         self.logger = logger
         self.simulation = simulation
+        if self.simulation is False:
+            self.VISION_IP = self.vision_ip
+            self.VISION_PORT = self.vision_port
+            self.LOCAL_IP = "10.10.76.2"
+        else:
+            self.VISION_IP = "127.0.0.1"
+            self.VISION_PORT = 8812
+            self.LOCAL_IP = "127.0.0.1"
         self.bearing = 0
         self.range_cm = 0
         self.channel = self.createChannel()
@@ -40,18 +48,9 @@ class VisionSensor:
         return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
 
     def createChannel(self):
-        if self.simulation is False:
-            VISION_IP = self.vision_ip
-            VISION_PORT = self.vision_port
-            LOCAL_IP = "10.10.76.2"
-        else:
-            VISION_IP = "127.0.0.1"
-            VISION_PORT = 8812
-            LOCAL_IP = "127.0.0.1"
-        
         try:
-            channel = UDPChannel(local_ip=LOCAL_IP, local_port=VISION_PORT, 
-                                      remote_ip=VISION_IP, remote_port=VISION_PORT)
+            channel = UDPChannel(local_ip=self.LOCAL_IP, local_port=self.VISION_PORT, 
+                                      remote_ip=self.VISION_IP, remote_port=self.VISION_PORT)
         except:
             channel = None
         return channel
