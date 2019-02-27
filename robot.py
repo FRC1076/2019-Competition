@@ -20,6 +20,8 @@ except ModuleNotFoundError as e:
     print("Missing hal_data. Ignore.")
     MISSING_HAL = True
 
+import robotpy_ext.common_drivers
+
 #OUR ROBOT SYSTEMS AND LIBRARIES
 from subsystems.drivetrain import Drivetrain
 from subsystems.elevator import Elevator, ElevatorAttendant, ElevatorController
@@ -59,16 +61,17 @@ CENTER_RETRACT_ID = 1
 BACK_EXTEND_ID = 2
 BACK_RETRACT_ID = 3
 
-#HATCH GRABBER PISTON IDs (solenoid)
+#4bar (solenoid)
 PISTON_EXTEND_ID = 4
 PISTON_RETRACT_ID = 5
 
+#hatch 
 RETRACT_ID = 6
 EXTEND_ID = 7
 
 '''
 Raw Axes
-0 L X Axis
+0 L X Axi
 1 L Y Axis
 2 L Trigger
 3 R Trigger
@@ -87,8 +90,8 @@ class MyRobot(wpilib.TimedRobot):
         self.gyro = wpilib.AnalogGyro(1)
 
         #DRIVETRAIN
-        left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID, LEFT_SLAVE_2_ID)
-        right = createTalonAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID, RIGHT_SLAVE_2_ID)
+        left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID)
+        right = createTalonAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID)
         self.drivetrain = Drivetrain(left, right, self.gyro)
 
         #HATCH GRABBER
@@ -113,7 +116,8 @@ class MyRobot(wpilib.TimedRobot):
         )
         
         #ELEVATOR
-        elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
+        #elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
+        elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
@@ -131,16 +135,20 @@ class MyRobot(wpilib.TimedRobot):
         self.encoder = FakeEncoder()
         self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.2, 0.2)
 
-
     def robotPeriodic(self):
         pass
 
     def teleopInit(self):
         """Executed at the start of teleop mode"""
-        self.pistons_activated = False
         self.forward = 0
-
         
+        # For vision and sonar, set simulation=True to use basic values for testing,
+        # and False to use the given values
+        #Vision sensor
+        #self.visionSensor = VisionSensor('10.10.76.13', 5880, simulation=True)
+
+        #Sonar sensor
+        self.sonarSensor = SonarSensor('10.10.76.11', 5811, simulation=True)
 
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
@@ -149,9 +157,9 @@ class MyRobot(wpilib.TimedRobot):
         max_forward = 1.0
         max_rotate = 1.0
 
-        goal_forward = self.driver.getRawAxis(5)
+        goal_forward = -self.driver.getRawAxis(5)
         #RAW AXIS 5 ON PRACTICE BOARD
-        rotation_value = -self.driver.getX(LEFT_CONTROLLER_HAND)
+        rotation_value = self.driver.getX(LEFT_CONTROLLER_HAND)
 
         goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
         rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
@@ -169,11 +177,17 @@ class MyRobot(wpilib.TimedRobot):
         '''
         Left bumper = retract intake (piston in)
         Right bumper = extend intake beyond frame perimeter (piston out)
+
         '''
         if self.driver.getBumper(LEFT_CONTROLLER_HAND):
             self.piston.extend()
         elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
             self.piston.retract()
+
+        if self.operator.getBumper(LEFT_CONTROLLER_HAND):
+            self.grabber.extend()
+        else:
+            self.grabber.retract()
 
         #DRIVER TEMPORARY ELEVATOR CONTROL 
         '''
@@ -231,14 +245,33 @@ class MyRobot(wpilib.TimedRobot):
         '''
 
         #END GAME 
+        whammyAxis = self.operator.getRawAxis(4)
+        whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
 
-        activate_pistons = self.operator.getStartButton() and self.driver.getStartButton()
-        release_pistons = self.operator.getBackButton() and self.driver.getStartButton()
+        activate_pistons = self.driver.getStartButton() and whammy_down
+        release_pistons = self.driver.getBackButton() 
 
         if activate_pistons:
-            self.lift.raise_all()
-        if release_pistons:
-            self.lift.lower_all()
+            self.lift.lower_center()
+            self.lift.lower_back()
+            self.logger.info("Raising all!")
+
+        elif release_pistons:
+            self.lift.raise_back()
+            self.lift.raise_center()
+            self.logger.info("Lower all!")
+
+
+        # if release_pistons:
+        #     self.lift.lower_all()
+    def autonomousInit(self):
+        self.teleopInit()
+        print("auton init")
+
+    def autonomousPeriodic(self):
+        self.teleopPeriodic()
+        print("auton periodic")
+        
 
 def createMasterAndSlaves(MASTER, slave1, slave2):
     '''

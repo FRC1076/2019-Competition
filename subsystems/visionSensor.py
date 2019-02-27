@@ -17,13 +17,14 @@ class VisionSensor:
 
         This creates channel to listen on port 8812 for angle information.
     """
-    def __init__(self, sensor_ip, listen_port, logger=None):
+    def __init__(self, sensor_ip, listen_port, simulation=False, logger=None):
         self.vision_ip = sensor_ip
         self.vision_port = listen_port
         self.logger = logger
+        self.simulation = simulation
         self.bearing = 0
         self.range_cm = 0
-        self.createChannel()
+        self.channel = self.createChannel()
 
     def pidGetBearing(self):
         # return cached bearing that was last received from
@@ -39,15 +40,23 @@ class VisionSensor:
         return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
 
     def createChannel(self):
-        vision_ip = self.vision_ip
-        vision_port = self.vision_port
+        if self.simulation is False:
+            VISION_IP = self.vision_ip
+            VISION_PORT = self.vision_port
+            LOCAL_IP = "10.10.76.2"
+        else:
+            VISION_IP = "127.0.0.1"
+            VISION_PORT = 8812
+            LOCAL_IP = "127.0.0.1"
+        
         try:
-            self.channel = UDPChannel(local_ip="127.0.0.1", local_port=5880, 
-                                      remote_ip=vision_ip, remote_port=vision_port)
+            channel = UDPChannel(local_ip=LOCAL_IP, local_port=VISION_PORT, 
+                                      remote_ip=VISION_IP, remote_port=VISION_PORT)
         except:
-            pass
+            channel = None
+        return channel
 
-    def recieveAngleUpdates(self):
+    def receiveAngleUpdates(self):
         if self.channel is None:
             self.createChannel()
         else:

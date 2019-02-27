@@ -11,10 +11,11 @@ class SonarSensor:
     Example:
         sonarSensor = SonarSensor('10.10.76.11', 5811)
     """
-    def __init__(self, sensor_ip, listen_port, logger=None):
+    def __init__(self, sensor_ip, listen_port, simulation=False, logger=None):
         self.sonar_ip = sensor_ip
         self.sonar_port = listen_port
         self.logger = logger
+        self.simulation = simulation
         self.range_cm = 0
         self.channel = self.createChannel()
 
@@ -28,11 +29,18 @@ class SonarSensor:
         return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
 
     def createChannel(self):
-        sonar_ip = self.sonar_ip
-        sonar_port = self.sonar_port
+        if self.simulation is False:
+            SONAR_IP = self.sonar_ip
+            SONAR_PORT = self.sonar_port
+            LOCAL_IP = "10.10.76.2"
+        else:
+            SONAR_IP = "127.0.0.1"
+            SONAR_PORT = 8813
+            LOCAL_IP = "127.0.0.1"
+        
         try:
-            channel = UDPChannel(local_ip="10.10.76.2", local_port=sonar_port, 
-                                 remote_ip=sonar_ip, remote_port=sonar_port)
+            channel = UDPChannel(local_ip=LOCAL_IP, local_port=SONAR_PORT, 
+                                 remote_ip=SONAR_IP, remote_port=SONAR_PORT)
         except:
             channel = None
         return channel
