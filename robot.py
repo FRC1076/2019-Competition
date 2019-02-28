@@ -146,14 +146,18 @@ class MyRobot(wpilib.TimedRobot):
         goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
         rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
 
-        # delta = goal_forward - self.forward
+        delta = goal_forward - self.forward
 
-        # if abs(delta) < max_accel:
-        #     self.forward += delta
-        # else:
-        #     self.forward += max_accel * sign(delta)
+        if abs(delta) < max_accel:
+            self.forward += delta
+        else:
+            self.forward += max_accel * sign(delta)
 
-        
+        if self.driver.getXButton():
+            self.drivetrain.stop()
+        else:
+            self.drivetrain.arcade_drive(self.forward, rotation_value)
+        # self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
         #4BAR CONTROL
         '''
@@ -188,7 +192,7 @@ class MyRobot(wpilib.TimedRobot):
         #     self.elevator.stop()
         
         # manual and autonomous driving will go here
-        self.drivetrain.arcade_drive(goal_forward, rotation_value)
+        
 
 
         #ELEVATOR CONTROL
@@ -201,8 +205,6 @@ class MyRobot(wpilib.TimedRobot):
             self.elevatorAttendant.stop()
             self.elevator.set(setPoint)
             
-
-
 
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
@@ -244,6 +246,7 @@ class MyRobot(wpilib.TimedRobot):
         #     self.lift.lower_all()
     def autonomousInit(self):
         self.teleopInit()
+
         print("auton init")
 
     def autonomousPeriodic(self):
