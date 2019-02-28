@@ -113,5 +113,5 @@ class ElevatorController:
             else:
                 setPoint = 0
             runElevator = False
-        return (False, setPoint)
+        return (runElevator, setPoint)
     
