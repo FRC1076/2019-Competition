@@ -1,6 +1,7 @@
 import wpilib
 import json
 from lib1076.udp_channel import UDPChannel
+from statistics import mean
 
 class SonarSensor:
     """
@@ -16,6 +17,8 @@ class SonarSensor:
         self.sonar_port = listen_port
         self.logger = logger
         self.simulation = simulation
+        self.wsize = 5
+        self.range_window = []
         if self.simulation is False:
             self.SONAR_IP = self.sonar_ip
             self.SONAR_PORT = self.sonar_port
@@ -66,3 +69,19 @@ class SonarSensor:
                     # leave the self.range_cm value alone
                     if self.logger is not None:
                         self.logger.error("json parsing error, message: ",message)
+
+    def filterWindow(self, new_value):
+        wsize = self.wsize
+        range_window = self.range_window
+
+        # drop in the new value, trim to wsize elements
+        self.range_window.insert(0, new_value)
+        self.range_window = range_window[:wsize]
+
+        # just return the reading if we do not have a full window
+        if len(self.range_window) < wsize:
+            return new_value
+        else:
+            # sort and then return the average w/o the hi and lo
+            sorted_window = sorted(self.range_window)
+            return mean(sorted_window[1:wsize-1])

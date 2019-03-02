@@ -14,7 +14,6 @@ sensor = SonarSensor('10.10.76.11', 5811,
 
 while(1):
     sensor.receiveRangeUpdates()
-    print("Received: ", sensor.pidGet())
+    rootLogger.debug("Received: %d", sensor.pidGet())
     # read 50 times a second to be sure to keep up
     time.sleep(0.02)
-
