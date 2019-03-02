@@ -127,12 +127,10 @@ class MyRobot(wpilib.TimedRobot):
         self.visionSensor = VisionSensor('127.0.0.1', 8812)
 
         #Sonar sensor
-        self.sonarSensor = SonarSensor('127.0.0.1', 8811)
+        #self.sonarSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
 
         # Elevator height sonar sensor
-        self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811)
-
-        self.encoder = FakeEncoder()
+        self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
         self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.2, 0.2)
 
     def robotPeriodic(self):
@@ -225,7 +223,7 @@ class MyRobot(wpilib.TimedRobot):
         self.ballManipulator.set(ballMotorSetPoint)
 
         # Recieve range from sonarSensor
-        self.sonarSensor.receiveRangeUpdates()
+        self.elevatorHeightSensor.receiveRangeUpdates()
 
         # Recieve angle and range from visionSensor
         self.visionSensor.receiveAngleUpdates()
