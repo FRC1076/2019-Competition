@@ -1,5 +1,6 @@
 #GENERAL PYTHON
 import math
+import time
 
 #GENERAL ROBOT
 import ctre 
@@ -225,28 +226,34 @@ class MyRobot(wpilib.TimedRobot):
         '''
 
         #END GAME 
-        # whammyAxis = self.operator.getRawAxis(4)
-        # whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
+        whammyAxis = self.operator.getRawAxis(4)
+        whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
 
-        # activate_pistons = self.driver.getStartButton() and whammy_down
-        # release_pistons = self.driver.getBackButton() 
 
-        # if activate_pistons:
-        #     self.lift.lower_center()
-        #     self.lift.lower_back()
-        #     self.logger.info("Raising all!")
+#       activate_pistons = self.driver.getStartButton() and whammy_down
+#       release_pistons = self.driver.getBackButton() 
 
-        # elif release_pistons:
-        #     self.lift.raise_back()
-        #     self.lift.raise_center()
-        #     self.logger.info("Lower all!")
+        driver_activate = self.driver.getAButton() and self.driver.getStartButton()
+        #driver_activate_center = self.driver.getBButton() and self.driver.getStartButton()
+
+        activate_pistons = driver_activate and whammy_down
+        release_pistons = self.driver.getBackButton() 
+
+        if activate_pistons:
+            self.lift.raise_back()
+            self.lift.raise_center()
+            self.logger.info("Raising all!")
+
+        elif release_pistons:
+            self.lift.lower_back()
+            self.lift.lower_center()
+            self.logger.info("Lower all!")
 
 
         # if release_pistons:
         #     self.lift.lower_all()
     def autonomousInit(self):
         self.teleopInit()
-
         print("auton init")
 
     def autonomousPeriodic(self):
@@ -266,7 +273,6 @@ def createMasterAndSlaves(MASTER, slave1, slave2):
     
     # if slave2 is not None:
     slave_victor = ctre.victorspx.VictorSPX(slave2)
-    slave_victor.set(ControlMode.Follower, MASTER)
     slave_victor.follow(master_talon)
     return master_talon
 
