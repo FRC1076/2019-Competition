@@ -229,10 +229,6 @@ class MyRobot(wpilib.TimedRobot):
         whammyAxis = self.operator.getRawAxis(4)
         whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
 
-
-#       activate_pistons = self.driver.getStartButton() and whammy_down
-#       release_pistons = self.driver.getBackButton() 
-
         driver_activate = self.driver.getAButton() and self.driver.getStartButton()
         #driver_activate_center = self.driver.getBButton() and self.driver.getStartButton()
 
@@ -248,7 +244,6 @@ class MyRobot(wpilib.TimedRobot):
             self.lift.lower_back()
             self.lift.lower_center()
             self.logger.info("Lower all!")
-
 
         # if release_pistons:
         #     self.lift.lower_all()
