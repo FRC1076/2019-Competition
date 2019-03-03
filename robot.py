@@ -115,8 +115,8 @@ class MyRobot(wpilib.TimedRobot):
         )
         
         #ELEVATOR
-        #elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
-        elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
+        elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
+        #elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
@@ -147,14 +147,18 @@ class MyRobot(wpilib.TimedRobot):
         goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
         rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
 
-        # delta = goal_forward - self.forward
+        delta = goal_forward - self.forward
 
-        # if abs(delta) < max_accel:
-        #     self.forward += delta
-        # else:
-        #     self.forward += max_accel * sign(delta)
+        if abs(delta) < max_accel:
+            self.forward += delta
+        else:
+            self.forward += max_accel * sign(delta)
 
-        
+        if self.driver.getXButton():
+            self.drivetrain.stop()
+        else:
+            self.drivetrain.arcade_drive(self.forward, rotation_value)
+        # self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
         #4BAR CONTROL
         '''
@@ -189,7 +193,7 @@ class MyRobot(wpilib.TimedRobot):
         #     self.elevator.stop()
         
         # manual and autonomous driving will go here
-        self.drivetrain.arcade_drive(goal_forward, rotation_value)
+        
 
 
         #ELEVATOR CONTROL
@@ -202,8 +206,6 @@ class MyRobot(wpilib.TimedRobot):
             self.elevatorAttendant.stop()
             self.elevator.set(setPoint)
             
-
-
 
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
@@ -227,6 +229,10 @@ class MyRobot(wpilib.TimedRobot):
         whammyAxis = self.operator.getRawAxis(4)
         whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
 
+
+#       activate_pistons = self.driver.getStartButton() and whammy_down
+#       release_pistons = self.driver.getBackButton() 
+
         driver_activate = self.driver.getAButton() and self.driver.getStartButton()
         #driver_activate_center = self.driver.getBButton() and self.driver.getStartButton()
 
@@ -242,6 +248,7 @@ class MyRobot(wpilib.TimedRobot):
             self.lift.lower_back()
             self.lift.lower_center()
             self.logger.info("Lower all!")
+
 
         # if release_pistons:
         #     self.lift.lower_all()
