@@ -31,4 +31,4 @@ class Lift:
 
     def raise_all(self):
         self.raise_center()
-        self.raise_center()
+        self.raise_back()
