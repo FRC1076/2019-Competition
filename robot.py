@@ -131,7 +131,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # Elevator height sonar sensor
         self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
-        self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.2, 0.2)
+        self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.5, 1.0)
 
     def robotPeriodic(self):
         pass
@@ -140,14 +140,6 @@ class MyRobot(wpilib.TimedRobot):
         """Executed at the start of teleop mode"""
         self.forward = 0
         
-        # For vision and sonar, set simulation=True to use basic values for testing,
-        # and False to use the given values
-        #Vision sensor
-        #self.visionSensor = VisionSensor('10.10.76.13', 5880, simulation=True)
-
-        #Sonar sensor
-        self.sonarSensor = SonarSensor('10.10.76.11', 5811, simulation=True)
-
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
@@ -213,11 +205,15 @@ class MyRobot(wpilib.TimedRobot):
             self.elevatorAttendant.setSetpoint(setPoint)
             self.elevatorAttendant.move()
             self.elevator.set(self.elevatorAttendant.getHeightRate())
+            # logging to help figure out what is up...
+            heightRate = self.elevatorAttendant.getHeightRate()
+            if heightRate != 0:
+                self.logger.error("Elevator Height rate %f ", heightRate)
         else:
             self.elevatorAttendant.stop()
             self.elevator.set(setPoint)
-            
 
+        
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
         self.ballManipulator.set(ballMotorSetPoint)
@@ -270,22 +266,6 @@ class MyRobot(wpilib.TimedRobot):
         self.teleopPeriodic()
         print("auton periodic")
         
-
-def createMasterAndSlaves(MASTER, slave1, slave2):
-    '''
-    First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
-    This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
-    '''
-    master_talon = ctre.WPI_TalonSRX(MASTER)
-
-    slave_talon = ctre.WPI_TalonSRX(slave1)
-    slave_talon.follow(master_talon)
-    
-    # if slave2 is not None:
-    slave_victor = ctre.victorspx.VictorSPX(slave2)
-    slave_victor.set(ControlMode.Follower, MASTER)
-    slave_victor.follow(master_talon)
-    return master_talon
 
 def createTalonAndSlaves(MASTER, slave1, slave2=None):
     '''

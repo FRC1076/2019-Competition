@@ -40,7 +40,7 @@ class ElevatorAttendant:
         self.encoder = encoder
         self.elevateToHeightRate = 0
 
-        kP = 0.01
+        kP = 0.5
         kI = 0.00
         kD = 0.00
         self.pid = wpilib.PIDController(kP, kI, kD, source=encoder, output=self)

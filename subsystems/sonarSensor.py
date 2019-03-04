@@ -60,7 +60,7 @@ class SonarSensor:
                 try:
                     message_dict = json.loads(message)
                     try:
-                        self.range_cm = message_dict['range-cm']
+                        self.range_cm = self.filterWindow(message_dict['range-cm'])
                     except KeyError:
                         if self.logger is not None:
                             self.logger.error("No range-cm in message %s", message)
