@@ -140,9 +140,9 @@ class MyRobot(wpilib.TimedRobot):
         max_forward = 1.0
         max_rotate = 1.0
 
-        rotation_value = -self.driver.getRawAxis(5)
+        goal_forward = -self.driver.getRawAxis(5)
         #RAW AXIS 5 ON PRACTICE BOARD
-        goal_forward = self.driver.getX(LEFT_CONTROLLER_HAND)
+        rotation_value = self.driver.getX(LEFT_CONTROLLER_HAND)
 
         goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
         rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
@@ -229,21 +229,25 @@ class MyRobot(wpilib.TimedRobot):
         whammyAxis = self.operator.getRawAxis(4)
         whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
 
-        driver_activate = self.driver.getAButton() and self.driver.getStartButton()
+    
+        driver_activate = self.driver.getYButton() and self.driver.getBButton()
+        # driver_activate_two = self.driver.getBButton and self.driver.getYButton()
         #driver_activate_center = self.driver.getBButton() and self.driver.getStartButton()
 
         activate_pistons = driver_activate and whammy_down
-        release_pistons = self.driver.getBackButton() 
+        # ) or (driver_activate_two and whammy_down)
+        
+        release_center_pistons = self.driver.getStartButton() 
+        release_back_pistons = self.driver.getBackButton()
 
         if activate_pistons:
-            self.lift.raise_back()
-            self.lift.raise_center()
+            self.lift.raise_all()
             self.logger.info("Raising all!")
-
-        elif release_pistons:
-            self.lift.lower_back()
-            self.lift.lower_center()
-            self.logger.info("Lower all!")
+        else:
+            if release_center_pistons:
+                self.lift.lower_center
+            if release_back_pistons:
+                self.lift.lower_back()
 
         # if release_pistons:
         #     self.lift.lower_all()
