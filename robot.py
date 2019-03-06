@@ -229,24 +229,22 @@ class MyRobot(wpilib.TimedRobot):
         whammyAxis = self.operator.getRawAxis(4)
         whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
 
-        driver_activate = self.driver.getAButton() and self.driver.getStartButton()
+        driver_activate = self.driver.getYButton() and self.driver.getBButton()
         #driver_activate_center = self.driver.getBButton() and self.driver.getStartButton()
 
         activate_pistons = driver_activate and whammy_down
-        release_pistons = self.driver.getBackButton() 
+        release_back_pistons = self.driver.getBackButton() 
+        release_center_pistons = self.driver.getStartButton()
 
         if activate_pistons:
-            self.lift.raise_back()
-            self.lift.raise_center()
+            self.lift.raise_all()
             self.logger.info("Raising all!")
-
-        elif release_pistons:
-            self.lift.lower_back()
-            self.lift.lower_center()
-            self.logger.info("Lower all!")
-
-        # if release_pistons:
-        #     self.lift.lower_all()
+        else:
+            if release_center_pistons:
+                self.lift.lower_center
+            if release_back_pistons:
+                self.lift.lower_back()
+                
     def autonomousInit(self):
         self.teleopInit()
         print("auton init")
