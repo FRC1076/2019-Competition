@@ -140,9 +140,9 @@ class MyRobot(wpilib.TimedRobot):
         max_forward = 1.0
         max_rotate = 1.0
 
-        rotation_value = -self.driver.getRawAxis(5)
+        goal_forward = -self.driver.getRawAxis(5)
         #RAW AXIS 5 ON PRACTICE BOARD
-        goal_forward = self.driver.getX(LEFT_CONTROLLER_HAND)
+        rotation_value = self.driver.getX(LEFT_CONTROLLER_HAND)
 
         goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
         rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
@@ -153,7 +153,7 @@ class MyRobot(wpilib.TimedRobot):
             self.forward += delta
         else:
             self.forward += max_accel * sign(delta)
-
+        #If the driver holds the right trigger down, we will go half speed forward and backward and 75% speed when turning.
         if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
             self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
         else:
@@ -171,6 +171,7 @@ class MyRobot(wpilib.TimedRobot):
         elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
             self.piston.extend()
 
+        #Hatch grabber default state is open. When the 5th button on the guitar is pressed, the hatch grabber closes.
         if self.operator.getBumper(LEFT_CONTROLLER_HAND):
             self.grabber.extend()
         else:
