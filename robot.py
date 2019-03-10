@@ -70,7 +70,7 @@ EXTEND_ID = 7
 
 '''
 Raw Axes
-0 L X Axi
+0 L X Axis
 1 L Y Axis
 2 L Trigger
 3 R Trigger
@@ -153,7 +153,9 @@ class MyRobot(wpilib.TimedRobot):
             self.forward += delta
         else:
             self.forward += max_accel * sign(delta)
-        #If the driver holds the right trigger down, we will go half speed forward and backward and 75% speed when turning.
+
+        #If the driver holds the right trigger down, we will go half speed forward 
+        # and backward and 75% speed when turning.
         if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
             self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
         else:
@@ -237,6 +239,7 @@ class MyRobot(wpilib.TimedRobot):
         release_back_pistons = self.driver.getBackButton() 
         release_center_pistons = self.driver.getStartButton()
 
+        #The front (center) pistons will fire 0.25 seconds after the back pistons have been fired.
         if activate_pistons:
             self.lift.raise_back()
             time.sleep(0.25)
@@ -249,6 +252,8 @@ class MyRobot(wpilib.TimedRobot):
                 self.lift.lower_back()
                 
     def autonomousInit(self):
+        #Because we want to drive during auton, just call the teleopInit() function to 
+        #get everything from teleop.
         self.teleopInit()
         print("auton init")
 
