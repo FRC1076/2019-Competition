@@ -167,14 +167,14 @@ class MyRobot(wpilib.TimedRobot):
 
         '''
         if self.driver.getBumper(LEFT_CONTROLLER_HAND):
-            self.piston.extend()
-        elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
             self.piston.retract()
+        elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
+            self.piston.extend()
 
         if self.operator.getBumper(LEFT_CONTROLLER_HAND):
-            self.grabber.retract()
-        else:
             self.grabber.extend()
+        else:
+            self.grabber.retract()
 
         #DRIVER TEMPORARY ELEVATOR CONTROL 
         '''
