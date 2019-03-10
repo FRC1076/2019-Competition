@@ -154,10 +154,10 @@ class MyRobot(wpilib.TimedRobot):
         else:
             self.forward += max_accel * sign(delta)
 
-        if self.driver.getXButton():
-            self.drivetrain.stop()
+        if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
+            self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
         else:
-            self.drivetrain.arcade_drive(self.forward, rotation_value)
+           self.drivetrain.arcade_drive(self.forward, rotation_value) 
         # self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
         #4BAR CONTROL
