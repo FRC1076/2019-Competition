@@ -92,7 +92,7 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorController = ElevatorController(self.operator, self.logger)
 
         #GYRO
-        self.gyro = self.ahrs = AHRS.create_spi()
+        self.gyro = AHRS.create_spi()
 
         #DRIVETRAIN
         left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID)
@@ -135,8 +135,8 @@ class MyRobot(wpilib.TimedRobot):
         self.timer = 0
 
     def robotPeriodic(self):
-        if self.timer % 1000 == 0:
-            print("NavX Gyro", self.ahrs.getYaw(), self.ahrs.getAngle())
+        if self.timer % 50 == 0:
+            print("NavX Gyro", self.gyro.getYaw(), self.gyro.getAngle())
         self.timer += 1
 
     def teleopInit(self):
