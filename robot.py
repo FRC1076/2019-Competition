@@ -141,10 +141,8 @@ class MyRobot(wpilib.TimedRobot):
 
     def teleopInit(self):
         """Executed at the start of teleop mode"""
-        
         self.forward = 0
         
-
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
