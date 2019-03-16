@@ -5,6 +5,7 @@ import time
 #GENERAL ROBOT
 import ctre 
 import wpilib
+from wpilib import Ultrasonic
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
 try:
@@ -68,6 +69,10 @@ PISTON_RETRACT_ID = 5
 RETRACT_ID = 6
 EXTEND_ID = 7
 
+# down sonar PIN numbers
+DOWN_SONAR_TRIGGER_PIN = 4
+DOWN_SONAR_ECHO_PIN = 5
+
 '''
 Raw Axes
 0 L X Axi
@@ -120,8 +125,11 @@ class MyRobot(wpilib.TimedRobot):
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
-        self.encoder = FakeEncoder()
-        self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
+        # down-facing sonar unit
+        self.downSonar = wpilib.Ultrasonic(DOWN_SONAR_TRIGGER_PIN, DOWN_SONAR_ECHO_PIN, Ultrasonic.Unit.kMillimeters)
+        self.downSonar.setPIDSourceType(wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement)
+        self.downSonar.setEnabled(True)
+        self.elevatorAttendant = ElevatorAttendant(self.downSonar, 0, 2000, -1, 1)
 
 
     def robotPeriodic(self):
@@ -131,6 +139,7 @@ class MyRobot(wpilib.TimedRobot):
         """Executed at the start of teleop mode"""
         
         self.forward = 0
+        self.downSonar.ping()
         
 
     def teleopPeriodic(self):
@@ -199,9 +208,15 @@ class MyRobot(wpilib.TimedRobot):
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
         if elevateToHeight:
-            self.elevatorAttendant.setSetpoint(setPoint)
-            self.elevatorAttendant.move()
-            self.elevator.set(self.elevatorAttendant.getHeightRate())
+            SLOP = 10
+            if setPoint > self.downSonar.getRangeMM() + SLOP:
+                # move the elevator up
+                self.elevator.go_up()
+            elif setPoint < self.downSonar.getRangeMM() - SLOP:
+                # move the elevator down
+                self.elevator.go_down()
+            else:
+                self.elevator.stop()
         else:
             self.elevatorAttendant.stop()
             self.elevator.set(setPoint)
@@ -224,6 +239,12 @@ class MyRobot(wpilib.TimedRobot):
         5: Hatch Panel grab (piston out). 5+wammy: Hatch Panel release (piston in). (5, z!=0)
         Start: Activate end game with Driver approval (8)
         '''
+
+        # SONAR
+        if self.downSonar.isRangeValid():
+            self.logger.info("Sonar returns %f", self.downSonar.pidGet())
+            self.logger.info("Sonar inches %d", self.downSonar.getRangeInches())
+            self.downSonar.ping()
 
         #END GAME 
         whammyAxis = self.operator.getRawAxis(4)

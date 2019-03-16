@@ -5,13 +5,13 @@ import wpilib
 MIN_ELEVATOR_RANGE = 0
 MAX_ELEVATOR_RANGE = 200
 
-#ELEVATOR STOPS
+#ELEVATOR STOPS in mm
 LOW_HATCH_VALUE = 0
 LOW_CARGO_VALUE = 500
-MEDIUM_HATCH_VALUE = 1000
-MEDIUM_CARGO_VALUE = 1500
-HIGH_HATCH_VALUE = 2000
-HIGH_CARGO_VALUE = 2500
+MEDIUM_HATCH_VALUE = 800
+MEDIUM_CARGO_VALUE = 1200
+HIGH_HATCH_VALUE = MEDIUM_HATCH_VALUE
+HIGH_CARGO_VALUE = MEDIUM_CARGO_VALUE
 
 
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
@@ -113,5 +113,5 @@ class ElevatorController:
             else:
                 setPoint = 0
             runElevator = False
-        return (False, setPoint)
+        return (runElevator, setPoint)
     
