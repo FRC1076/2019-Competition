@@ -6,13 +6,14 @@ import time
 import ctre 
 import wpilib
 from wpilib import DoubleSolenoid
+from navx import AHRS
 from wpilib.interfaces import GenericHID
-try:
-    from navx import AHRS
-    MISSING_NAVX = False
-except ModuleNotFoundError as e:
-    print("Missing navx.  Carry on!")
-    MISSING_NAVX = True
+# try:
+#     from navx import AHRS
+#     MISSING_NAVX = False
+# except ModuleNotFoundError as e:
+#     print("Missing navx.  Carry on!")
+#     MISSING_NAVX = True
     
 try:
     from hal_impl.data import hal_data
@@ -30,6 +31,7 @@ from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
 from subsystems.ballManipulator import BallManipulator, BallManipulatorController
+from subsystems.continuousServo import ContinuousRotationServo
 
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
@@ -68,6 +70,10 @@ PISTON_RETRACT_ID = 5
 RETRACT_ID = 6
 EXTEND_ID = 7
 
+#servo
+SERVO_CHANNEL = 4
+
+
 '''
 Raw Axes
 0 L X Axis
@@ -86,7 +92,7 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorController = ElevatorController(self.operator, self.logger)
 
         #GYRO
-        self.gyro = wpilib.AnalogGyro(1)
+        self.gyro = self.ahrs = AHRS.create_spi()
 
         #DRIVETRAIN
         left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID)
@@ -123,9 +129,15 @@ class MyRobot(wpilib.TimedRobot):
         self.encoder = FakeEncoder()
         self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
 
+        #SERVO
+        self.servo = ContinuousRotationServo(4)
+
+        self.timer = 0
 
     def robotPeriodic(self):
-        pass
+        if self.timer % 1000 == 0:
+            print("NavX Gyro", self.ahrs.getYaw(), self.ahrs.getAngle())
+        self.timer += 1
 
     def teleopInit(self):
         """Executed at the start of teleop mode"""
@@ -250,7 +262,14 @@ class MyRobot(wpilib.TimedRobot):
                 self.lift.lower_center()
             if release_back_pistons:
                 self.lift.lower_back()
-                
+
+        if self.driver.getXButton():
+            self.servo.turn(-1)
+        elif self.driver.getBButton():
+            self.servo.turn(1)
+        elif self.driver.getAButton():
+            self.servo.stopMotor()
+            
     def autonomousInit(self):
         #Because we want to drive during auton, just call the teleopInit() function to 
         #get everything from teleop.
@@ -260,7 +279,7 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousPeriodic(self):
         self.teleopPeriodic()
         print("auton periodic")
-        
+
 
 def createMasterAndSlaves(MASTER, slave1, slave2):
     '''
