@@ -69,8 +69,8 @@ RETRACT_ID = 6
 EXTEND_ID = 7
 
 # down sonar PIN numbers
-DOWN_SONAR_TRIGGER_PIN = 8
-DOWN_SONAR_ECHO_PIN = 9
+DOWN_SONAR_TRIGGER_PIN = 4
+DOWN_SONAR_ECHO_PIN = 5
 
 '''
 Raw Axes
@@ -127,6 +127,7 @@ class MyRobot(wpilib.TimedRobot):
         # down-facing sonar unit
         self.downSonar = wpilib.Ultrasonic(DOWN_SONAR_TRIGGER_PIN, DOWN_SONAR_ECHO_PIN, Ultrasonic.Unit.kMillimeters)
         self.downSonar.setPIDSourceType(wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement)
+        self.downSonar.setEnabled(True)
         self.elevatorAttendant = ElevatorAttendant(self.downSonar, 0, 2000, -1, 1)
 
 
@@ -137,6 +138,7 @@ class MyRobot(wpilib.TimedRobot):
         """Executed at the start of teleop mode"""
         
         self.forward = 0
+        self.downSonar.ping()
         
 
     def teleopPeriodic(self):
@@ -201,9 +203,15 @@ class MyRobot(wpilib.TimedRobot):
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
         if elevateToHeight:
-            self.elevatorAttendant.setSetpoint(setPoint)
-            self.elevatorAttendant.move()
-            self.elevator.set(self.elevatorAttendant.getHeightRate())
+            SLOP = 10
+            if setPoint > self.downSonar.getRangeMM() + SLOP:
+                # move the elevator up
+                self.elevator.go_up()
+            elif setPoint < self.downSonar.getRangeMM() - SLOP:
+                # move the elevator down
+                self.elevator.go_down()
+            else:
+                self.elevator.stop()
         else:
             self.elevatorAttendant.stop()
             self.elevator.set(setPoint)
@@ -228,8 +236,10 @@ class MyRobot(wpilib.TimedRobot):
         '''
 
         # SONAR
-        self.logger.info("Sonar returns %f", self.downSonar.pidGet())
-        self.logger.info("Sonar inches %d", self.downSonar.getRangeInches())
+        if self.downSonar.isRangeValid():
+            self.logger.info("Sonar returns %f", self.downSonar.pidGet())
+            self.logger.info("Sonar inches %d", self.downSonar.getRangeInches())
+            self.downSonar.ping()
 
         #END GAME 
         whammyAxis = self.operator.getRawAxis(4)
