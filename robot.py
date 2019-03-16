@@ -5,6 +5,7 @@ import time
 #GENERAL ROBOT
 import ctre 
 import wpilib
+import network
 from wpilib import Ultrasonic
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
@@ -73,6 +74,12 @@ EXTEND_ID = 7
 DOWN_SONAR_TRIGGER_PIN = 4
 DOWN_SONAR_ECHO_PIN = 5
 
+#vision PID numbers
+VISION_P = 0.04
+VISION_I = 0.00
+VISION_D = 0.00
+
+
 '''
 Raw Axes
 0 L X Axi
@@ -131,13 +138,18 @@ class MyRobot(wpilib.TimedRobot):
         self.downSonar.setEnabled(True)
         self.elevatorAttendant = ElevatorAttendant(self.downSonar, 0, 2000, -1, 1)
 
+        if MyRobot.isReal():
+            self.vision_socket = network.VisionSocket()
+        else:
+            self.vision_socket = network.MockSocket()
+
+        self.vision_socket.start()
 
     def robotPeriodic(self):
-        pass
+        self.drivetrain.updatePID()
 
     def teleopInit(self):
         """Executed at the start of teleop mode"""
-        
         self.forward = 0
         self.downSonar.ping()
         
@@ -240,11 +252,16 @@ class MyRobot(wpilib.TimedRobot):
         Start: Activate end game with Driver approval (8)
         '''
 
+        #print(self.downSonar.getRangeInches())
+        
+        
         # SONAR
         if self.downSonar.isRangeValid():
-            self.logger.info("Sonar returns %f", self.downSonar.pidGet())
+            #self.logger.info("Sonar returns %f", self.downSonar.pidGet())
             self.logger.info("Sonar inches %d", self.downSonar.getRangeInches())
             self.downSonar.ping()
+
+        
 
         #END GAME 
         whammyAxis = self.operator.getRawAxis(4)
@@ -279,7 +296,89 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousPeriodic(self):
         self.teleopPeriodic()
         print("auton periodic")
+
+# def sonarFilter(self):
+#     if self.downSonar.getRangeInches() > 90:
+#         return None
+#     else:
+#         return self.downSonar.getRangeInches()
         
+
+class VisionAuto(BaseAutonomous):
+    """
+    Rotate the robot towards the target using incoming vision packets
+    vision_socket is a VisionSocket, not a Python socket
+    """
+    def __init__(self, drivetrain, gyro, vision_socket, forward, retroreflective):
+        """
+        """
+        self.drivetrain = drivetrain
+        self.socket = vision_socket
+        self.gyro = gyro
+        self.forward = forward
+        self.correction = 0
+        self.look_for = retroreflective
+        # PID Constants, tuned as of March 5th
+        self.PID = wpilib.PIDController(VISION_P, VISION_I, VISION_D,
+            source=self._get_angle,
+            output=self._set_correction)
+
+        print("P: ", VISION_P)
+        print("I: ", VISION_I)
+        print("D: ", VISION_D)
+
+    def _get_angle(self):
+        angle = self.socket.get_angle(key=self.look_for, max_staleness=0.5)
+        if angle is None:
+            return 0
+        return angle
+
+    def _set_correction(self, value):
+        self.correction = value
+
+    def init(self):
+        self.PID.setInputRange(-35, 35)
+        self.PID.enable()
+
+    def execute(self):
+        # Values to make angle correction smaller:
+        # ~57% = (x / 1.75)
+        # ~47% = (x / 2.13)
+        # ~42% = (x / 2.38)
+        # ~30% = (x / 3.33)
+        while True:
+            angle = self.socket.get_angle(key=self.look_for, max_staleness=0.5)
+            if angle is not None:
+                correction = self.correction
+                # print("self.Correction: ", self.correction)
+                # print("Correction: ", correction)
+                correction = math.copysign(self.correction, angle)
+                self.drivetrain.arcade_drive(self.forward, correction)
+            else:
+                self.drivetrain.arcade_drive(self.forward, 0)
+            yield
+
+    def end(self):
+        self.PID.disable()
+
+
+class BaseAutonomous:
+    def init(self):
+        return self
+
+    def execute(self):
+        pass
+
+    def end(self):
+        pass
+
+
+    def run(self):
+        def _execute():
+            yield from self.execute()
+            self.end()
+        self.init()
+        return _execute()
 
 def createMasterAndSlaves(MASTER, slave1, slave2):
     '''
