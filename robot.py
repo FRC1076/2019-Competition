@@ -6,15 +6,17 @@ import time
 import ctre 
 import wpilib
 import network
+import autonomous
 from wpilib import Ultrasonic
 from wpilib import DoubleSolenoid
 from wpilib.interfaces import GenericHID
-try:
-    from navx import AHRS
-    MISSING_NAVX = False
-except ModuleNotFoundError as e:
-    print("Missing navx.  Carry on!")
-    MISSING_NAVX = True
+from navx import AHRS
+# try:
+#     from navx import AHRS
+#     MISSING_NAVX = False
+# except ModuleNotFoundError as e:
+#     print("Missing navx.  Carry on!")
+#     MISSING_NAVX = True
     
 try:
     from hal_impl.data import hal_data
@@ -74,15 +76,10 @@ EXTEND_ID = 7
 DOWN_SONAR_TRIGGER_PIN = 4
 DOWN_SONAR_ECHO_PIN = 5
 
-#vision PID numbers
-VISION_P = 0.04
-VISION_I = 0.00
-VISION_D = 0.00
-
 
 '''
 Raw Axes
-0 L X Axi
+0 L X Axis
 1 L Y Axis
 2 L Trigger
 3 R Trigger
@@ -98,7 +95,7 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorController = ElevatorController(self.operator, self.logger)
 
         #GYRO
-        self.gyro = wpilib.AnalogGyro(1)
+        self.gyro = AHRS.create_spi()
 
         #DRIVETRAIN
         left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID)
@@ -138,6 +135,9 @@ class MyRobot(wpilib.TimedRobot):
         self.downSonar.setEnabled(True)
         self.elevatorAttendant = ElevatorAttendant(self.downSonar, 0, 2000, -1, 1)
 
+        '''
+        Use Mock Vision Socket if testing, use real if real.
+        '''
         if MyRobot.isReal():
             self.vision_socket = network.VisionSocket()
         else:
@@ -145,8 +145,13 @@ class MyRobot(wpilib.TimedRobot):
 
         self.vision_socket.start()
 
+        self.timer = 0
+
     def robotPeriodic(self):
-        self.drivetrain.updatePID()
+        #self.drivetrain.updatePID()
+        if self.timer % 50 == 0:
+            print("NavX Gyro", self.gyro.getYaw(), self.gyro.getAngle())
+        self.timer += 1
 
     def teleopInit(self):
         """Executed at the start of teleop mode"""
@@ -175,16 +180,22 @@ class MyRobot(wpilib.TimedRobot):
         else:
             self.forward += max_accel * sign(delta)
 
-        if self.driver.getXButton():
-            self.drivetrain.stop()
+        '''
+        If right trigger is held, go 50% speed and turn 75%
+        If left trigger is held, use auto vision correcting
+        Otherwise, arcade drive as normal.
+        '''
+        if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
+            self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
+        elif self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND):
+            autonomous.vision_reckon(self.drivetrain, self.gyro, self.vision_socket)
         else:
             self.drivetrain.arcade_drive(self.forward, rotation_value)
-        # self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
         #4BAR CONTROL
         '''
-        Left bumper = retract intake (piston in)
-        Right bumper = extend intake beyond frame perimeter (piston out)
+        Left bumper = retract 4bar (piston in)
+        Right bumper = extend 4bar beyond frame perimeter (piston out)
 
         '''
         if self.driver.getBumper(LEFT_CONTROLLER_HAND):
@@ -192,30 +203,31 @@ class MyRobot(wpilib.TimedRobot):
         elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
             self.piston.retract()
 
+        ''' 
+        Hatch Grabber is default extended unless operator closes it.
+        '''
         if self.operator.getBumper(LEFT_CONTROLLER_HAND):
             self.grabber.retract()
         else:
             self.grabber.extend()
 
-        #DRIVER TEMPORARY ELEVATOR CONTROL 
         '''
+        DRIVER TEMPORARY ELEVATOR CONTROL 
+        
         Left trigger is go up, Right trigger is go down 
+        
+        left_trigger = self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND)
+        right_trigger = self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND)
+
+        TRIGGER_LEVEL = 0.5
+
+        if abs(left_trigger) > TRIGGER_LEVEL:
+            self.elevator.go_up(self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND))
+        elif abs(right_trigger) > TRIGGER_LEVEL:
+            self.elevator.go_down(self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND))
+        else:
+            self.elevator.stop()
         '''
-        # left_trigger = self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND)
-        # right_trigger = self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND)
-
-        # TRIGGER_LEVEL = 0.5
-
-        # if abs(left_trigger) > TRIGGER_LEVEL:
-        #     self.elevator.go_up(self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND))
-        # elif abs(right_trigger) > TRIGGER_LEVEL:
-        #     self.elevator.go_down(self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND))
-        # else:
-        #     self.elevator.stop()
-        
-        # manual and autonomous driving will go here
-        
-
 
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
@@ -233,27 +245,12 @@ class MyRobot(wpilib.TimedRobot):
             self.elevatorAttendant.stop()
             self.elevator.set(setPoint)
             
-
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
         self.ballManipulator.set(ballMotorSetPoint)
         
         #If proximity sensor = 0
             #self.encoder.reset()
-
-        '''
-        Guitar Hero controls
-        1: Hatch Panel Low. 1+Wammy: Cargo Low (1, z!=0)
-        2: Hatch Panel Middle. 2+wammy: Cargo Middle (2, z!=0)
-        3: Hatch Panel High. 3+wammy: Cargo High (4, z!=0)
-        (1-3 elevator positions = 2 CIM motors in a toughbox gearbox)
-        4: Cargo intake IN. 4+wammy: Cargo intake out (single motor tbd) (3, z!=0)
-        5: Hatch Panel grab (piston out). 5+wammy: Hatch Panel release (piston in). (5, z!=0)
-        Start: Activate end game with Driver approval (8)
-        '''
-
-        #print(self.downSonar.getRangeInches())
-        
         
         # SONAR
         if self.downSonar.isRangeValid():
@@ -261,19 +258,13 @@ class MyRobot(wpilib.TimedRobot):
             self.logger.info("Sonar inches %d", self.downSonar.getRangeInches())
             self.downSonar.ping()
 
-        
 
         #END GAME 
         whammyAxis = self.operator.getRawAxis(4)
         whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
-
-    
         driver_activate = self.driver.getYButton() and self.driver.getBButton()
-        # driver_activate_two = self.driver.getBButton and self.driver.getYButton()
-        #driver_activate_center = self.driver.getBButton() and self.driver.getStartButton()
 
         activate_pistons = driver_activate and whammy_down
-        # ) or (driver_activate_two and whammy_down)
         
         release_center_pistons = self.driver.getStartButton() 
         release_back_pistons = self.driver.getBackButton()
@@ -286,9 +277,8 @@ class MyRobot(wpilib.TimedRobot):
                 self.lift.lower_center
             if release_back_pistons:
                 self.lift.lower_back()
+      
 
-        # if release_pistons:
-        #     self.lift.lower_all()
     def autonomousInit(self):
         self.teleopInit()
         print("auton init")
@@ -296,89 +286,7 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousPeriodic(self):
         self.teleopPeriodic()
         print("auton periodic")
-
-# def sonarFilter(self):
-#     if self.downSonar.getRangeInches() > 90:
-#         return None
-#     else:
-#         return self.downSonar.getRangeInches()
         
-
-class VisionAuto(BaseAutonomous):
-    """
-    Rotate the robot towards the target using incoming vision packets
-    vision_socket is a VisionSocket, not a Python socket
-    """
-    def __init__(self, drivetrain, gyro, vision_socket, forward, retroreflective):
-        """
-        """
-        self.drivetrain = drivetrain
-        self.socket = vision_socket
-        self.gyro = gyro
-        self.forward = forward
-        self.correction = 0
-        self.look_for = retroreflective
-        # PID Constants, tuned as of March 5th
-        self.PID = wpilib.PIDController(VISION_P, VISION_I, VISION_D,
-            source=self._get_angle,
-            output=self._set_correction)
-
-        print("P: ", VISION_P)
-        print("I: ", VISION_I)
-        print("D: ", VISION_D)
-
-    def _get_angle(self):
-        angle = self.socket.get_angle(key=self.look_for, max_staleness=0.5)
-        if angle is None:
-            return 0
-        return angle
-
-    def _set_correction(self, value):
-        self.correction = value
-
-    def init(self):
-        self.PID.setInputRange(-35, 35)
-        self.PID.enable()
-
-    def execute(self):
-        # Values to make angle correction smaller:
-        # ~57% = (x / 1.75)
-        # ~47% = (x / 2.13)
-        # ~42% = (x / 2.38)
-        # ~30% = (x / 3.33)
-        while True:
-            angle = self.socket.get_angle(key=self.look_for, max_staleness=0.5)
-            if angle is not None:
-                correction = self.correction
-                # print("self.Correction: ", self.correction)
-                # print("Correction: ", correction)
-                correction = math.copysign(self.correction, angle)
-                self.drivetrain.arcade_drive(self.forward, correction)
-            else:
-                self.drivetrain.arcade_drive(self.forward, 0)
-            yield
-
-    def end(self):
-        self.PID.disable()
-
-
-class BaseAutonomous:
-    def init(self):
-        return self
-
-    def execute(self):
-        pass
-
-    def end(self):
-        pass
-
-
-    def run(self):
-        def _execute():
-            yield from self.execute()
-            self.end()
-        self.init()
-        return _execute()
 
 def createMasterAndSlaves(MASTER, slave1, slave2):
     '''
