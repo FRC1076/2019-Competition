@@ -16,6 +16,18 @@ HIGH_CARGO_VALUE = MEDIUM_CARGO_VALUE
 
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
+
+'''
+Guitar Hero controls
+1: Hatch Panel Low. 1+Wammy: Cargo Low (1, z!=0)
+2: Hatch Panel Middle. 2+wammy: Cargo Middle (2, z!=0)
+3: Hatch Panel High. 3+wammy: Cargo High (4, z!=0)
+(1-3 elevator positions = 2 CIM motors in a toughbox gearbox)
+4: Cargo intake IN. 4+wammy: Cargo intake out (single motor tbd) (3, z!=0)
+5: Hatch Panel grab (piston out). 5+wammy: Hatch Panel release (piston in). (5, z!=0)
+Start: Activate end game with Driver approval (8)
+'''
+        
 class Elevator:
     def __init__(self, motor, encoder_motor=None):
         self.encoder_motor = encoder_motor
