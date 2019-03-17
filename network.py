@@ -90,7 +90,6 @@ class VisionSocket(Thread):
     def debug(self):
         print("time: ", self.last_packet_time)
         print("id: ", self.packet_id)
-        print("angle (cube): ", self.get_angle(key="cube", max_staleness=1.0))
         print("angle (retro): ", self.get_angle(key="retroreflective", max_staleness=1.0))
         print("all angles: ", self.vision_dict)
 
@@ -124,19 +123,19 @@ class VisionSocket(Thread):
         self.socket.close()
         self.running = False
 
-"""
-Builds a RotateAutonomous object which attempts to rotate towards the target.
-If it cannot get a packet, it will return a RotateAutonomous object which
-does no rotation
-"""
-def rotate_to_target(drivetrain, gyro, speed):
-    try:
-        json = get_packet()
-    except IOError as e:
-        print("Failed to get a packet: {}".format(e))
-        return RotateAutonomous(drivetrain, gyro, 0, 0.0)
+# """
+# Builds a RotateAutonomous object which attempts to rotate towards the target.
+# If it cannot get a packet, it will return a RotateAutonomous object which
+# does no rotation
+# """
+# def rotate_to_target(drivetrain, gyro, speed):
+#     try:
+#         json = get_packet()
+#     except IOError as e:
+#         print("Failed to get a packet: {}".format(e))
+#         return RotateAutonomous(drivetrain, gyro, 0, 0.0)
 
-    if json["sender"] == "vision":
-        if json["object"] == lookFor:
-            angle = json["angle"]
-            return RotateAutonomous(drivetrain, gyro, angle, speed)
+#     if json["sender"] == "vision":
+#         if json["object"] == lookFor:
+#             angle = json["angle"]
+#             return RotateAutonomous(drivetrain, gyro, angle, speed)
