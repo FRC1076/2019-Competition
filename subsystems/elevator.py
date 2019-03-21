@@ -83,6 +83,7 @@ class ElevatorController:
         whammyBarPressed = (triggerAxisValue > -0.7 and not (triggerAxisValue == 0))
         runElevator = True     # assume running unless no buttons pressed
                     
+        
         if self.controller.getAButton():
             if whammyBarPressed:
                 setPoint = LOW_CARGO_VALUE
@@ -107,7 +108,7 @@ class ElevatorController:
             elevator_speed = self.controller.getRawAxis(2)
 
             if self.controller.getStartButton(): 
-                setPoint = -(elevator_speed/2)
+                setPoint = -(elevator_speed*0.45)
             elif self.controller.getBackButton():
                 setPoint = elevator_speed
             else:
