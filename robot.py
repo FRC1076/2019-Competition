@@ -32,7 +32,7 @@ from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
 from subsystems.ballManipulator import BallManipulator, BallManipulatorController
 from subsystems.continuousServo import ContinuousRotationServo
-
+from subsystems.continuousServo import ContinuousRotationServoWithFeedback
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
 
@@ -130,13 +130,14 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
 
         #SERVO
-        self.servo = ContinuousRotationServo(4)
-
+        self.servo = ContinuousRotationServo(6)
+        self.servo2 = ContinuousRotationServoWithFeedback(7, 3)
+        
         self.timer = 0
 
     def robotPeriodic(self):
-        if self.timer % 50 == 0:
-            print("NavX Gyro", self.gyro.getYaw(), self.gyro.getAngle())
+        ##if self.timer % 50 == 0:
+        ##print("NavX Gyro", self.gyro.getYaw(), self.gyro.getAngle())
         self.timer += 1
 
     def teleopInit(self):
@@ -265,11 +266,18 @@ class MyRobot(wpilib.TimedRobot):
 
         if self.driver.getXButton():
             self.servo.turn(-1)
+            self.servo2.turn(-1)
         elif self.driver.getBButton():
             self.servo.turn(1)
+            self.servo2.turn(1)
         elif self.driver.getAButton():
             self.servo.stopMotor()
-            
+            self.servo2.stopMotor() 
+        elif self.driver.getYButton():
+            self.logger.info("%s", self.servo2.getPosition())
+
+
+
     def autonomousInit(self):
         #Because we want to drive during auton, just call the teleopInit() function to 
         #get everything from teleop.
