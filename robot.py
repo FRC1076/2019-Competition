@@ -310,10 +310,13 @@ class VisionAttendant:
         self.pid.setOutputRange(-.5, .5)
 
     def pidWrite(self, output):
-        self.turnRate = -output
+        self.turnRate = output
     
     def getTurnRate(self):
-        return self.turnRate
+        """
+        I believe the left/right motors are switched
+        """
+        return -self.turnRate
 
     def move(self):
         self.pid.enable()
