@@ -44,6 +44,9 @@ class VisionSensor:
         # the vision system
         return self.range_cm
 
+    def pidGet(self):
+        return self.pidGetBearing()
+
     def getPIDSourceType(self):
         return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
 
@@ -61,17 +64,16 @@ class VisionSensor:
         else:
             (message, sender) = self.channel.receive_from()
             if message is not None:
+                self.logger.info("Received: %s", message)
                 try:
                     message_dict = json.loads(message)
+                    self.bearing = 0
                     try:
-                        self.range_cm = message_dict['range']
-                        try:
+                        if message_dict['status']:
                             self.bearing = message_dict['angle']
-                        except message_dict['angle'] is None:
-                            self.bearing = message_dict['bearing']
-                        return self.range_cm, self.bearing
-                    except KeyError:
+                    except KeyError as ke:
                         if self.logger is not None:
-                            self.logger.error("No bearing and/or range in message %s", message)
+                            self.logger.error("Assume bearing=0, error in message, %s: %s", message, ke)
                 except json.decoder.JSONDecodeError:
                     message_dict = None
+                    self.logger.error("failed to decode json %s", message)
