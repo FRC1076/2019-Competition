@@ -51,10 +51,17 @@ Reordered in priority order.
    Encoder mounted on the elevator drivetrain.  (need breakout connected to a motor
    controller powering the elevator #7.)
    
- 9. Balancing servos (coupled to flow-control valve)    These four servos are to be connected
-    to the Rio (PWM pins 0-3).    If the location of the servos requires it, we'll need
-    standard 3-wire extensions for the connection.  (servos have 1 foot of wire on them that
-    can be plugged directly into Rio PWM pings.
+9. Balancing servos (coupled to flow-control valve)    These four servos are to be connected
+   to the Rio (PWM pins 0-3).    If the location of the servos requires it, we'll need
+   standard 3-wire extensions for the connection.  Servos already have 1 foot of wire on them
+   that can be plugged directly into Rio PWM pins.
+ 
+    Connected to Rio PWM pin numbers:
+        0    Servo for front left piston flow control valve
+        1    Servo for front right piston flow control valve
+        2    Servo for back left piston flow control valve
+        3    Servo for back right piston flow control valve
+
     
 10. Motor controller ID assignments to be set/wired before giving the robot to software.
     
@@ -79,10 +86,4 @@ Assigned IP Addresses (for software reference, useful for anyone debugging)
   DriverCam  10.10.76.17   (FRC approved port numbers:   5807)
   Lights  10.10.76.23  port 5823
    
- Balancing  Servos
  
-    Connected to Rio PWM pin numbers:
-        0    Servo for front left piston flow control valve
-        1    Servo for front right piston flow control valve
-        2    Servo for back left piston flow control valve
-        3    Servo for back right piston flow control valve
