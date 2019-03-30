@@ -33,6 +33,7 @@ from subsystems.extendPiston import extendPiston
 from subsystems.ballManipulator import BallManipulator, BallManipulatorController
 from subsystems.continuousServo import ContinuousRotationServo
 from subsystems.continuousServo import ContinuousRotationServoWithFeedback
+from subsystems.climber import Climber
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
 
@@ -71,7 +72,12 @@ RETRACT_ID = 6
 EXTEND_ID = 7
 
 #servo
-SERVO_CHANNEL = 4
+SERVO0_CHANNEL = 0 #front left
+SERVO1_CHANNEL = 1 #front right
+SERVO2_CHANNEL = 2 #back left
+SERVO3_CHANNEL = 3 #back right
+
+
 
 
 '''
@@ -130,14 +136,19 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
 
         #SERVO
-        self.servo = ContinuousRotationServo(6)
-        self.servo2 = ContinuousRotationServoWithFeedback(7, 3)
+        self.servo0 = ContinuousRotationServo(SERVO0_CHANNEL)
+        self.servo1 = ContinuousRotationServo(SERVO1_CHANNEL)
+        self.servo2 = ContinuousRotationServo(SERVO2_CHANNEL)
+        self.servo3 = ContinuousRotationServo(SERVO3_CHANNEL)
+        #self.servo2 = ContinuousRotationServoWithFeedback(7, 3)
         
+        self.climber = Climber(self.gyro, self.servo0, self.servo1, self.servo2, self.servo3)
+
         self.timer = 0
 
     def robotPeriodic(self):
-        ##if self.timer % 50 == 0:
-        ##print("NavX Gyro", self.gyro.getYaw(), self.gyro.getAngle())
+        # if self.timer % 50 == 0:
+        #     print("NavX Gyro Roll", self.gyro.getRoll())
         self.timer += 1
 
     def teleopInit(self):
@@ -145,6 +156,9 @@ class MyRobot(wpilib.TimedRobot):
         self.forward = 0
         
     def teleopPeriodic(self):
+
+        print("NavX Gyro Roll", self.gyro.getRoll())
+
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
         max_accel = 0.3
@@ -253,7 +267,7 @@ class MyRobot(wpilib.TimedRobot):
         #The front (center) pistons will fire 0.25 seconds after the back pistons have been fired.
         if activate_pistons:
             self.lift.raise_back()
-            time.sleep(0.25)
+            #time.sleep(0.25)
             self.lift.raise_center()
             self.logger.info("Raising all!")
         else:
@@ -262,17 +276,22 @@ class MyRobot(wpilib.TimedRobot):
             if release_back_pistons:
                 self.lift.lower_back()
 
-        if self.driver.getXButton():
-            self.servo.turn(-1)
-            self.servo2.turn(-1)
-        elif self.driver.getBButton():
-            self.servo.turn(1)
-            self.servo2.turn(1)
-        elif self.driver.getAButton():
-            self.servo.stopMotor()
-            self.servo2.stopMotor() 
-        elif self.driver.getYButton():
-            self.logger.info("%s", self.servo2.getPosition())
+        roll_value = self.gyro.getRoll()
+        pitch_value = self.gyro.getPitch()
+
+        self.climber.balanceMe()
+
+        # if self.driver.getXButton():
+        #     self.servo.turn(-1)
+        #     self.servo2.turn(-1)
+        # elif self.driver.getBButton():
+        #     self.servo.turn(1)
+        #     self.servo2.turn(1)
+        # elif self.driver.getAButton():
+        #     self.servo.stopMotor()
+        #     self.servo2.stopMotor() 
+        # elif self.driver.getYButton():
+        #     self.logger.info("%s", self.servo2.getPosition())
 
 
 

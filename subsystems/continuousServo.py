@@ -5,17 +5,26 @@ class ContinuousRotationServo:
     def __init__(self, channel):
         channel_number = channel
         self.servo = wpilib.PWM(channel)
+        self.close_value = 0
         #self.setBounds(1.0, 1.48, 1.5, 1.52, 2.0)
         self.setBounds(2.0, 1.65, 1.5, 1.35, 1.0)
 
     def setBounds(self, maximum, deadbandMax, center, deadbandMin, minimum):
         self.servo.setBounds(maximum, deadbandMax, center, deadbandMin, minimum)  
 
-    # speed value must be between -1 and 1
+    def closingValue(self):
+        return self.close_value
+        
+    def hasBeenClosing(self):
+        return self.close_value > 1
+
     def turn(self, turn):
-        turn = turn*70
-        center = 0
-        self.servo.setSpeed(center + turn)
+        if turn < 0:
+            self.close_value -= 0.02
+        else:
+            self.close_value += 0.02
+
+        self.servo.setSpeed(turn)
 
     def setSpeed(self, speed_value):
         self.servo.setSpeed(speed_value)
