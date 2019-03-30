@@ -276,9 +276,6 @@ class MyRobot(wpilib.TimedRobot):
             if release_back_pistons:
                 self.lift.lower_back()
 
-        roll_value = self.gyro.getRoll()
-        pitch_value = self.gyro.getPitch()
-
         self.climber.balanceMe()
 
         # if self.driver.getXButton():
