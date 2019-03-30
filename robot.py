@@ -7,13 +7,14 @@ import ctre
 import wpilib
 from wpilib import Ultrasonic
 from wpilib import DoubleSolenoid
+from navx import AHRS
 from wpilib.interfaces import GenericHID
-try:
-    from navx import AHRS
-    MISSING_NAVX = False
-except ModuleNotFoundError as e:
-    print("Missing navx.  Carry on!")
-    MISSING_NAVX = True
+# try:
+#     from navx import AHRS
+#     MISSING_NAVX = False
+# except ModuleNotFoundError as e:
+#     print("Missing navx.  Carry on!")
+#     MISSING_NAVX = True
     
 try:
     from hal_impl.data import hal_data
@@ -31,6 +32,8 @@ from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
 from subsystems.ballManipulator import BallManipulator, BallManipulatorController
+from subsystems.continuousServo import ContinuousRotationServo
+from subsystems.continuousServo import ContinuousRotationServoWithFeedback
 from subsystems.sonarSensor import SonarSensor
 from subsystems.visionSensor import VisionSensor
 
@@ -71,13 +74,17 @@ PISTON_RETRACT_ID = 5
 RETRACT_ID = 6
 EXTEND_ID = 7
 
+#servo
+SERVO_CHANNEL = 4
+
+
 # down sonar PIN numbers
 DOWN_SONAR_TRIGGER_PIN = 4
 DOWN_SONAR_ECHO_PIN = 5
 
 '''
 Raw Axes
-0 L X Axi
+0 L X Axis
 1 L Y Axis
 2 L Trigger
 3 R Trigger
@@ -93,7 +100,7 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorController = ElevatorController(self.operator, self.logger)
 
         #GYRO
-        self.gyro = wpilib.AnalogGyro(1)
+        self.gyro = AHRS.create_spi()
 
         #DRIVETRAIN
         left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID)
@@ -136,6 +143,11 @@ class MyRobot(wpilib.TimedRobot):
         # remote sensors
         #Vision sensor
         self.visionSensor = VisionSensor('10.10.76.13', 5880, logger=self.logger)
+        #SERVO
+        self.servo = ContinuousRotationServo(6)
+        self.servo2 = ContinuousRotationServoWithFeedback(7, 3)
+        
+        self.timer = 0
 
         #Sonar sensor
         #self.sonarSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
@@ -147,7 +159,9 @@ class MyRobot(wpilib.TimedRobot):
         self.visionAttendant = VisionAttendant(self.visionSensor)
 
     def robotPeriodic(self):
-        pass
+        ##if self.timer % 50 == 0:
+        ##print("NavX Gyro", self.gyro.getYaw(), self.gyro.getAngle())
+        self.timer += 1
 
     def teleopInit(self):
         """Executed at the start of teleop mode"""
@@ -190,7 +204,7 @@ class MyRobot(wpilib.TimedRobot):
         if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
             self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
         else:
-            self.drivetrain.arcade_drive(self.forward, rotation_value)
+           self.drivetrain.arcade_drive(self.forward, rotation_value) 
         # self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
         #4BAR CONTROL
@@ -200,14 +214,15 @@ class MyRobot(wpilib.TimedRobot):
 
         '''
         if self.driver.getBumper(LEFT_CONTROLLER_HAND):
-            self.piston.extend()
-        elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
             self.piston.retract()
+        elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
+            self.piston.extend()
 
+        #Hatch grabber default state is open. When the 5th button on the guitar is pressed, the hatch grabber closes.
         if self.operator.getBumper(LEFT_CONTROLLER_HAND):
-            self.grabber.retract()
-        else:
             self.grabber.extend()
+        else:
+            self.grabber.retract()
 
         
 
@@ -280,36 +295,47 @@ class MyRobot(wpilib.TimedRobot):
         whammyAxis = self.operator.getRawAxis(4)
         whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
 
-    
         driver_activate = self.driver.getYButton() and self.driver.getBButton()
-        # driver_activate_two = self.driver.getBButton and self.driver.getYButton()
         #driver_activate_center = self.driver.getBButton() and self.driver.getStartButton()
 
         activate_pistons = driver_activate and whammy_down
-        # ) or (driver_activate_two and whammy_down)
-        
-        release_center_pistons = self.driver.getStartButton() 
-        release_back_pistons = self.driver.getBackButton()
+        release_back_pistons = self.driver.getBackButton() 
+        release_center_pistons = self.driver.getStartButton()
 
+        #The front (center) pistons will fire 0.25 seconds after the back pistons have been fired.
         if activate_pistons:
-            self.lift.raise_all()
+            self.lift.raise_back()
+            self.lift.raise_center()
             self.logger.info("Raising all!")
         else:
             if release_center_pistons:
-                self.lift.lower_center
+                self.lift.lower_center()
             if release_back_pistons:
                 self.lift.lower_back()
 
-        # if release_pistons:
-        #     self.lift.lower_all()
+        if self.driver.getXButton():
+            self.servo.turn(-1)
+            self.servo2.turn(-1)
+        elif self.driver.getBButton():
+            self.servo.turn(1)
+            self.servo2.turn(1)
+        elif self.driver.getAButton():
+            self.servo.stopMotor()
+            self.servo2.stopMotor() 
+        elif self.driver.getYButton():
+            self.logger.info("%s", self.servo2.getPosition())
+
+
+
     def autonomousInit(self):
+        #Because we want to drive during auton, just call the teleopInit() function to 
+        #get everything from teleop.
         self.teleopInit()
         print("auton init")
 
     def autonomousPeriodic(self):
         self.teleopPeriodic()
         print("auton periodic")
-        
 
 def createTalonAndSlaves(MASTER, slave1, slave2=None):
     '''
