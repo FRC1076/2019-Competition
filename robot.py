@@ -31,6 +31,8 @@ from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
 from subsystems.ballManipulator import BallManipulator, BallManipulatorController
+from subsystems.sonarSensor import SonarSensor
+from subsystems.visionSensor import VisionSensor
 
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
@@ -131,17 +133,27 @@ class MyRobot(wpilib.TimedRobot):
         self.downSonar.setEnabled(True)
         self.elevatorAttendant = ElevatorAttendant(self.downSonar, 0, 2000, -1, 1)
 
+        # remote sensors
+        #Vision sensor
+        self.visionSensor = VisionSensor('10.10.76.13', 5880, logger=self.logger)
+
+        #Sonar sensor
+        #self.sonarSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
+
+        # Elevator height sonar sensor
+        self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
+        self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.5, 1.0)
+
+        self.visionAttendant = VisionAttendant(self.visionSensor)
 
     def robotPeriodic(self):
         pass
 
     def teleopInit(self):
         """Executed at the start of teleop mode"""
-        
         self.forward = 0
         self.downSonar.ping()
         
-
     def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
@@ -152,11 +164,23 @@ class MyRobot(wpilib.TimedRobot):
         goal_forward = -self.driver.getRawAxis(5)
         #RAW AXIS 5 ON PRACTICE BOARD
         rotation_value = self.driver.getX(LEFT_CONTROLLER_HAND)
-
+        
         goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
-        rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
 
-        delta = goal_forward - self.forward
+        # manual and autonomous driving will go here
+        if self.driver.getBButton():
+            self.logger.info("Button B pressed, turn to target!")
+            self.visionAttendant.setSetpoint(0)
+            self.visionAttendant.move()
+            # if we are auton turning, we can override value with pid
+            rotation_value = self.visionAttendant.getTurnRate()
+        else:
+            self.visionAttendant.stop()
+            rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
+            
+        self.drivetrain.arcade_drive(goal_forward, rotation_value)
+
+        # delta = goal_forward - self.forward
 
         if abs(delta) < max_accel:
             self.forward += delta
@@ -185,6 +209,8 @@ class MyRobot(wpilib.TimedRobot):
         else:
             self.grabber.extend()
 
+        
+
         #DRIVER TEMPORARY ELEVATOR CONTROL 
         '''
         Left trigger is go up, Right trigger is go down 
@@ -201,30 +227,34 @@ class MyRobot(wpilib.TimedRobot):
         # else:
         #     self.elevator.stop()
         
-        # manual and autonomous driving will go here
         
 
 
         #ELEVATOR CONTROL
         (elevateToHeight, setPoint) = self.elevatorController.getOperation()
         if elevateToHeight:
-            SLOP = 10
-            if setPoint > self.downSonar.getRangeMM() + SLOP:
-                # move the elevator up
-                self.elevator.go_up()
-            elif setPoint < self.downSonar.getRangeMM() - SLOP:
-                # move the elevator down
-                self.elevator.go_down()
-            else:
-                self.elevator.stop()
+            self.elevatorAttendant.setSetpoint(setPoint)
+            self.elevatorAttendant.move()
+            self.elevator.set(self.elevatorAttendant.getHeightRate())
+            # logging to help figure out what is up...
+            heightRate = self.elevatorAttendant.getHeightRate()
+            if heightRate != 0:
+                self.logger.error("Elevator Height rate %f ", heightRate)
         else:
             self.elevatorAttendant.stop()
             self.elevator.set(setPoint)
-            
 
+        
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
         self.ballManipulator.set(ballMotorSetPoint)
+
+        # Recieve range from sonarSensor
+        self.elevatorHeightSensor.receiveRangeUpdates()
+
+        # Recieve angle and range from visionSensor
+        self.visionSensor.receiveAngleUpdates()
+        self.logger.info("Vision bearing %f degrees", self.visionSensor.bearing)
         
         #If proximity sensor = 0
             #self.encoder.reset()
@@ -281,21 +311,6 @@ class MyRobot(wpilib.TimedRobot):
         print("auton periodic")
         
 
-def createMasterAndSlaves(MASTER, slave1, slave2):
-    '''
-    First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
-    This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
-    '''
-    master_talon = ctre.WPI_TalonSRX(MASTER)
-
-    slave_talon = ctre.WPI_TalonSRX(slave1)
-    slave_talon.follow(master_talon)
-    
-    # if slave2 is not None:
-    slave_victor = ctre.victorspx.VictorSPX(slave2)
-    slave_victor.follow(master_talon)
-    return master_talon
-
 def createTalonAndSlaves(MASTER, slave1, slave2=None):
     '''
     First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
@@ -309,6 +324,37 @@ def createTalonAndSlaves(MASTER, slave1, slave2=None):
         slave_talon2 = ctre.WPI_TalonSRX(slave2)
         slave_talon2.follow(master_talon)
     return master_talon
+    
+class VisionAttendant:
+    def __init__(self, vision_sensor):
+        self.vision_sensor = vision_sensor
+        self.turnRate = 0
+
+        kP = 0.1
+        kI = 0.00
+        kD = 0.00
+        self.pid = wpilib.PIDController(kP, kI, kD, source=vision_sensor, output=self)
+        self.pid.setInputRange(-10, 10)
+        self.pid.setOutputRange(-.5, .5)
+
+    def pidWrite(self, output):
+        self.turnRate = output
+    
+    def getTurnRate(self):
+        """
+        I believe the left/right motors are switched
+        """
+        return -self.turnRate
+
+    def move(self):
+        self.pid.enable()
+    
+    def stop(self):
+        self.pid.disable()
+        self.turnRate = 0
+
+    def setSetpoint(self, angle):
+        self.pid.setSetpoint(angle)
 
 
 class FakeEncoder:
