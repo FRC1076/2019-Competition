@@ -1,5 +1,5 @@
-                                                         Feb 27, 2019
-                                                         Version 1.6
+                                                         Mar 30, 2019
+                                                         Version 1.7
 
 https://github.com/FRC1076/2019-Competition/edit/master/mandatory-robot.txt
 Printed versions of this document are considered obsolete.
@@ -10,7 +10,7 @@ The following are electrical and hardware requirements as specified by software 
 Reordered in priority order.
 
 1. 5 port ethernet hub (powered by 5v, 3.5 mm Barrel connector, rated at 600 milliamps)
-   We need to be able to access the ports.   It this done? 
+   We need to be able to access the ports.    Port access needs improvement.
 
 2. Drivercamera, wired into ethernet hub.  Powered by 5v phone charger battery.
    (need mounting places for both battery and the Pi case/camera.)
@@ -18,14 +18,15 @@ Reordered in priority order.
    Drivercamera must be able to see when delivering hatch and/or ball.
    It can be used for alignment, so should be able to see the floor in front of the robot.
    
-   Does it need a fisheye lens in order to do that?
+   Does it need a fisheye lens in order to do that?  (yes, there is now a spare lens, too)
    
 3. Downward facing simple sonar unit (wired over 4-wire cable through the cable management.)
    This is to be connected to Arduino and then Ethernet, or else wired directly to the
    Rio.   Either solution gets us periodic sonar measurements.     Sonar should be directed
    at the floor from the bottom of the ball handler with suffient protection to prevent it from
    getting broken during reverse hab dive.   It might be necessary to aim the unit slightly away
-   from the robot to avoid picking up robot parts in the returns.
+   from the robot to avoid picking up robot parts in the returns.   (Status:  we could continue
+   to work on this if we have a few wiring harnesses to connect sonar to Rio.)
 
 4. Limit switch to stop downward elevator motion.   This should be wired to the
    reverse limit switch pin of the master elevator drive motor controller #7 breakout.
@@ -38,7 +39,7 @@ Reordered in priority order.
    running over the handler to power the ring.)
    Needs legit/protected mounting location and wiring over the cable management.
 
-6. Dual sonar mounts on front of robot in a position that will permit the sonar to
+6. (scratch this) Dual sonar mounts on front of robot in a position that will permit the sonar to
    determine if the robot is square to the pickup delivery points.
     a. mounts
     b. three wires each, to Rio (5v power, ground, and to an analog input pin)
@@ -50,8 +51,12 @@ Reordered in priority order.
    Encoder mounted on the elevator drivetrain.  (need breakout connected to a motor
    controller powering the elevator #7.)
    
-   
-9. Motor controller ID assignments to be set/wired before giving the robot to software.
+ 9. Balancing servos (coupled to flow-control valve)    These four servos are to be connected
+    to the Rio (PWM pins 0-3).    If the location of the servos requires it, we'll need
+    standard 3-wire extensions for the connection.  (servos have 1 foot of wire on them that
+    can be plugged directly into Rio PWM pings.
+    
+10. Motor controller ID assignments to be set/wired before giving the robot to software.
     
     Can ID for drivetrain:  (post weight-loss program)
       
@@ -66,10 +71,18 @@ Reordered in priority order.
             0: 4,5:     Deploy Intake
             0: 6,7:     Hatchgrabber
 
-Assigned IP Addresses:
+Assigned IP Addresses (for software reference, useful for anyone debugging)
 
   Robot   10.10.76.2
   Vision  10.10.76.13 port 5880
   Sonar   10.10.76.11 port 5811  (sketch Arduino1076/examples/UDPSonar)
   DriverCam  10.10.76.17   (FRC approved port numbers:   5807)
   Lights  10.10.76.23  port 5823
+   
+ Balancing  Servos
+ 
+    Connected to Rio PWM pin numbers:
+        0    Servo for front left piston flow control valve
+        1    Servo for front right piston flow control valve
+        2    Servo for back left piston flow control valve
+        3    Servo for back right piston flow control valve
