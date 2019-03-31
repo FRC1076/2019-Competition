@@ -1,8 +1,13 @@
 import wpilib 
 from subsystems.continuousServo import ContinuousRotationServo
+from threading import Thread
+from time import sleep
 
 ROLL_TOL = 2
 PITCH_TOL = ROLL_TOL
+
+LEAN_DELAY = 3
+LEAN_TARGET = 15
 
 class Climber:
     def __init__(self, gyro, servo0, servo1, servo2, servo3, logger=None):
@@ -14,14 +19,22 @@ class Climber:
 
         self.logger = logger
 
+        self.rollTarget = 0
+        self.pitchTarget = 0
+
+        self.leanSequence = [ (0,0) , (3,-10) , (3,20) ]
+
     def balanceMe(self):
 
         roll_value = self.gyro.getRoll()
         pitch_value = self.gyro.getPitch()
 
-        if abs(roll_value) > ROLL_TOL or abs(pitch_value) > PITCH_TOL:
-            if roll_value < 0: #left side high
-                if pitch_value < 0: #back high
+        thr = Thread(target=Climber.leanTimed, args=(self))
+        thr.start()
+
+        if abs(roll_value - self.rollTarget) > ROLL_TOL or abs(pitch_value - self.pitchTarget) > PITCH_TOL:
+            if roll_value < self.rollTarget: #left side high
+                if pitch_value < self.pitchTarget: #back high
                     if self.servo1.hasBeenClosing():
                         self.servo1.turn(-1)
                     else:
@@ -34,7 +47,7 @@ class Climber:
                         self.servo3.stopMotor()
                         self.servo0.turn(1)
             else: #right side high
-                if pitch_value < 0: #back high
+                if pitch_value < self.pitchTarget: #back high
                     if self.servo0.hasBeenClosing():
                         self.servo0.turn(-1)
                     else:
@@ -56,7 +69,11 @@ class Climber:
         pass
     def reInit(self):
         pass
+
+    def leanTimed(self):
+        for (delay, angle) in self.leanSequence:
+            sleep(delay)
+            self.pitchTarget = angle
+
+
         
-
-
-    
