@@ -287,7 +287,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # Recieve angle and range from visionSensor
         self.visionSensor.receiveAngleUpdates()
-        self.logger.info("Vision bearing %f degrees", self.visionSensor.bearing)
+        #self.logger.info("Vision bearing %f degrees", self.visionSensor.bearing)
         
         #If proximity sensor = 0
             #self.encoder.reset()
@@ -340,6 +340,8 @@ class MyRobot(wpilib.TimedRobot):
             self.climber.closeAllValves()
         if self.driver.getAButton():
             self.climber.openAllValves
+        if self.driver.getXButtonReleased():
+            self.climber.stopAll()
 
     def autonomousInit(self):
         #Because we want to drive during auton, just call the teleopInit() function to 
