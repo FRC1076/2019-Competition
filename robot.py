@@ -341,8 +341,10 @@ class MyRobot(wpilib.TimedRobot):
         if self.driver.getXButton():
             self.climber.closeAllValves()
         if self.driver.getAButton():
-            self.climber.openAllValves
+            self.climber.openAllValves()
         if self.driver.getXButtonReleased():
+            self.climber.stopAll()
+        if self.driver.getAButtonReleased():
             self.climber.stopAll()
 
     def autonomousInit(self):

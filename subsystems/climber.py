@@ -22,8 +22,8 @@ class Climber:
         self.rollTarget = 0
         self.pitchTarget = 0
 
-        self.thisLeanSequence = [ (0,0) , (3,-10) , (3,-20) ]
-        self.leanSequence = [0,0]
+        self.leanSequence = [ (0,0) , (3,-10) , (3,-20) ]
+        self.thisLeanSequence = [0,0]
 
 
     def balanceMe(self):
