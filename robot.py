@@ -333,20 +333,6 @@ class MyRobot(wpilib.TimedRobot):
 
         self.climber.balanceMe()
 
-        # if self.driver.getXButton():
-        #     self.servo.turn(-1)
-        #     self.servo2.turn(-1)
-        # elif self.driver.getBButton():
-        #     self.servo.turn(1)
-        #     self.servo2.turn(1)
-        # elif self.driver.getAButton():
-        #     self.servo.stopMotor()
-        #     self.servo2.stopMotor() 
-        # elif self.driver.getYButton():
-        #     self.logger.info("%s", self.servo2.getPosition())
-
-
-
     def autonomousInit(self):
         #Because we want to drive during auton, just call the teleopInit() function to 
         #get everything from teleop.
