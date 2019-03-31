@@ -74,8 +74,6 @@ class Climber:
         for (delay, angle) in self.leanSequence:
             sleep(delay)
             self.pitchTarget = angle
-
-
         
     def stopAll(self):
         self.servo0.stopMotor()

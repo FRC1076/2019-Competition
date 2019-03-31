@@ -329,8 +329,10 @@ class MyRobot(wpilib.TimedRobot):
             self.logger.info("Raising all!")
         else:
             if release_center_pistons:
+                self.autoBalancing = False
                 self.lift.lower_center()
             if release_back_pistons:
+                self.autoBalancing = False
                 self.lift.lower_back()
 
         if self.autoBalancing == True:
