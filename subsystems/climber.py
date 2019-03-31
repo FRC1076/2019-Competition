@@ -22,14 +22,16 @@ class Climber:
         self.rollTarget = 0
         self.pitchTarget = 0
 
-        self.leanSequence = [ (0,0) , (3,-10) , (3,-20) ]
+        self.thisLeanSequence = [ (0,0) , (3,-10) , (3,-20) ]
+        self.leanSequence = [0,0]
+
 
     def balanceMe(self):
 
         roll_value = self.gyro.getRoll()
         pitch_value = self.gyro.getPitch()
 
-        thr = Thread(target=Climber.leanTimed, args=(self))
+        thr = Thread(target=Climber.leanTimed, args=(self,))
         thr.start()
 
         if abs(roll_value - self.rollTarget) > ROLL_TOL or abs(pitch_value - self.pitchTarget) > PITCH_TOL:
