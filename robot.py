@@ -181,26 +181,31 @@ class MyRobot(wpilib.TimedRobot):
         
         goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
 
-        # manual and autonomous driving will go here
-        if self.driver.getBButton():
-            self.logger.info("Button B pressed, turn to target!")
-            self.visionAttendant.setSetpoint(0)
-            self.visionAttendant.move()
-            # if we are auton turning, we can override value with pid
-            rotation_value = self.visionAttendant.getTurnRate()
-        else:
-            self.visionAttendant.stop()
-            rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
+        # # manual and autonomous driving will go here
+        # if self.driver.getBButton():
+        #     self.logger.info("Button B pressed, turn to target!")
+        #     self.visionAttendant.setSetpoint(0)
+        #     self.visionAttendant.move()
+        #     # if we are auton turning, we can override value with pid
+        #     rotation_value = self.visionAttendant.getTurnRate()
+        # else:
+        #     self.visionAttendant.stop()
+        #     rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
             
-        self.drivetrain.arcade_drive(goal_forward, rotation_value)
+        # if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
+        #     self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
+        # else:
+        #     self.drivetrain.arcade_drive(self.forward, rotation_value)
 
-        # delta = goal_forward - self.forward
+        delta = goal_forward - self.forward
 
         if abs(delta) < max_accel:
             self.forward += delta
         else:
             self.forward += max_accel * sign(delta)
 
+        #If the driver holds the right trigger down, we will go half speed forward 
+        # and backward and 75% speed when turning.
         if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
             self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
         else:
@@ -220,9 +225,9 @@ class MyRobot(wpilib.TimedRobot):
 
         #Hatch grabber default state is open. When the 5th button on the guitar is pressed, the hatch grabber closes.
         if self.operator.getBumper(LEFT_CONTROLLER_HAND):
-            self.grabber.extend()
-        else:
             self.grabber.retract()
+        else:
+            self.grabber.extend()
 
         
 
@@ -286,10 +291,10 @@ class MyRobot(wpilib.TimedRobot):
         '''
 
         # SONAR
-        if self.downSonar.isRangeValid():
-            self.logger.info("Sonar returns %f", self.downSonar.pidGet())
-            self.logger.info("Sonar inches %d", self.downSonar.getRangeInches())
-            self.downSonar.ping()
+        # if self.downSonar.isRangeValid():
+        #     self.logger.info("Sonar returns %f", self.downSonar.pidGet())
+        #     self.logger.info("Sonar inches %d", self.downSonar.getRangeInches())
+        #     self.downSonar.ping()
 
         #END GAME 
         whammyAxis = self.operator.getRawAxis(4)
