@@ -3,7 +3,9 @@ import wpilib
 class ContinuousRotationServo:
 
     def __init__(self, channel):
-        channel_number = channel
+        """
+        Create controller for servo that can be used to open and close a valve.
+        """
         self.servo = wpilib.PWM(channel)
         self.close_value = 0
         #self.setBounds(1.0, 1.48, 1.5, 1.52, 2.0)
@@ -23,8 +25,14 @@ class ContinuousRotationServo:
             self.close_value -= 0.02
         else:
             self.close_value += 0.02
-
         self.servo.setSpeed(turn)
+
+    def close(self):
+        self.turn(1)
+
+    def open(self):
+        self.turn(-1)
+    
 
     def setSpeed(self, speed_value):
         self.servo.setSpeed(speed_value)
@@ -37,7 +45,6 @@ class ContinuousRotationServo:
 class ContinuousRotationServoWithFeedback:
 
     def __init__(self, channel, feedback):
-        channel_number = channel
         self.servo = wpilib.PWM(channel)
         #self.setBounds(1.0, 1.48, 1.5, 1.52, 2.0)
         self.setBounds(1.72, 1.52, 1.5, 1.48, 1.28)
@@ -62,6 +69,5 @@ class ContinuousRotationServoWithFeedback:
 
         value = self.position.getValue()
         voltage = self.position.getVoltage()
-        stars = "*"*(int(voltage*20))
-        ##return "servo fb value: {} servo fb voltage: {}".format(value, voltage)
-        return "servo fb value: {}".format(stars)
+        #stars = "*"*(int(voltage*20))
+        return "servo fb value: {} servo fb voltage: {}".format(value, voltage)

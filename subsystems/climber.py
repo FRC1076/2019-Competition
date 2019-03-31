@@ -56,7 +56,23 @@ class Climber:
         pass
     def reInit(self):
         pass
-        
 
+    def openAllValves(self):
+        self.servo0.turn(-1)
+        self.servo1.turn(-1)
+        self.servo2.turn(-1)
+        self.servo3.turn(-1)
+
+    def closeAllValves(self):
+        self.servo0.turn(1)
+        self.servo1.turn(1)
+        self.servo2.turn(1)
+        self.servo3.turn(1)
+
+    def turnAllValves(self, turnRate):
+        self.servo0.turn(turnRate)
+        self.servo1.turn(turnRate)
+        self.servo2.turn(turnRate)
+        self.servo3.turn(turnRate)
 
     
