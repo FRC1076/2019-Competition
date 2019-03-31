@@ -167,6 +167,8 @@ class MyRobot(wpilib.TimedRobot):
 
         self.visionAttendant = VisionAttendant(self.visionSensor)
 
+        self.autoBalancing = False
+
     def robotPeriodic(self):
         # if self.timer % 50 == 0:
         #     print("NavX Gyro Roll", self.gyro.getRoll())
@@ -320,6 +322,7 @@ class MyRobot(wpilib.TimedRobot):
 
         #The front (center) pistons will fire 0.25 seconds after the back pistons have been fired.
         if activate_pistons:
+            self.autoBalancing = True
             self.lift.raise_back()
             #time.sleep(0.25)
             self.lift.raise_center()
@@ -330,7 +333,13 @@ class MyRobot(wpilib.TimedRobot):
             if release_back_pistons:
                 self.lift.lower_back()
 
-        self.climber.balanceMe()
+        if self.autoBalancing == True:
+            self.climber.balanceMe()
+
+        if self.driver.getXButton():
+            self.climber.closeAllValves()
+        if self.driver.getAButton():
+            self.climber.openAllValves
 
     def autonomousInit(self):
         #Because we want to drive during auton, just call the teleopInit() function to 
