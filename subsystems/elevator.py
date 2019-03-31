@@ -84,26 +84,9 @@ class ElevatorController:
         runElevator = True     # assume running unless no buttons pressed
                     
         
-        if self.controller.getAButton():
-            if whammyBarPressed:
-                setPoint = LOW_CARGO_VALUE
-            else:
-                setPoint = LOW_HATCH_VALUE
-            if self.logger is not None:
-                self.logger.info("button A has been pressed")
-
-        elif self.controller.getBButton():
-            if whammyBarPressed:
-                setPoint = MEDIUM_CARGO_VALUE
-            else:
-                setPoint = MEDIUM_HATCH_VALUE
-
-        elif self.controller.getYButton():
-            if whammyBarPressed:
-                setPoint = HIGH_CARGO_VALUE
-            else:
-                setPoint = HIGH_HATCH_VALUE
-        
+        if self.controller.getYButton():
+            elevator_speed = self.controller.getRawAxis(2)
+            setPoint = elevator_speed * 0.1
         else:
             elevator_speed = self.controller.getRawAxis(2)
 
