@@ -5,13 +5,13 @@ import wpilib
 MIN_ELEVATOR_RANGE = 0
 MAX_ELEVATOR_RANGE = 200
 
-#ELEVATOR STOPS
+#ELEVATOR STOPS in mm
 LOW_HATCH_VALUE = 0
 LOW_CARGO_VALUE = 500
-MEDIUM_HATCH_VALUE = 1000
-MEDIUM_CARGO_VALUE = 1500
-HIGH_HATCH_VALUE = 2000
-HIGH_CARGO_VALUE = 2500
+MEDIUM_HATCH_VALUE = 800
+MEDIUM_CARGO_VALUE = 1200
+HIGH_HATCH_VALUE = MEDIUM_HATCH_VALUE
+HIGH_CARGO_VALUE = MEDIUM_CARGO_VALUE
 
 
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
@@ -40,7 +40,7 @@ class ElevatorAttendant:
         self.encoder = encoder
         self.elevateToHeightRate = 0
 
-        kP = 0.01
+        kP = 0.5
         kI = 0.00
         kD = 0.00
         self.pid = wpilib.PIDController(kP, kI, kD, source=encoder, output=self)
@@ -83,35 +83,20 @@ class ElevatorController:
         whammyBarPressed = (triggerAxisValue > -0.7 and not (triggerAxisValue == 0))
         runElevator = True     # assume running unless no buttons pressed
                     
-        if self.controller.getAButton():
-            if whammyBarPressed:
-                setPoint = LOW_CARGO_VALUE
-            else:
-                setPoint = LOW_HATCH_VALUE
-            if self.logger is not None:
-                self.logger.info("button A has been pressed")
-
-        elif self.controller.getBButton():
-            if whammyBarPressed:
-                setPoint = MEDIUM_CARGO_VALUE
-            else:
-                setPoint = MEDIUM_HATCH_VALUE
-
-        elif self.controller.getYButton():
-            if whammyBarPressed:
-                setPoint = HIGH_CARGO_VALUE
-            else:
-                setPoint = HIGH_HATCH_VALUE
+        elevator_speed = self.controller.getRawAxis(2)
         
+        if self.controller.getYButton():
+            # elevator_speed = self.controller.getRawAxis(2)
+            setPoint = elevator_speed * 0.1
         else:
-            elevator_speed = self.controller.getRawAxis(2)
+            # elevator_speed = self.controller.getRawAxis(2)
 
             if self.controller.getStartButton(): 
-                setPoint = -(elevator_speed/2)
+                setPoint = -(elevator_speed*0.45)
             elif self.controller.getBackButton():
                 setPoint = elevator_speed
             else:
                 setPoint = 0
             runElevator = False
-        return (False, setPoint)
+        return (runElevator, setPoint)
     

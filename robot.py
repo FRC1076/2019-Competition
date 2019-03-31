@@ -5,14 +5,16 @@ import time
 #GENERAL ROBOT
 import ctre 
 import wpilib
+from wpilib import Ultrasonic
 from wpilib import DoubleSolenoid
+from navx import AHRS
 from wpilib.interfaces import GenericHID
-try:
-    from navx import AHRS
-    MISSING_NAVX = False
-except ModuleNotFoundError as e:
-    print("Missing navx.  Carry on!")
-    MISSING_NAVX = True
+# try:
+#     from navx import AHRS
+#     MISSING_NAVX = False
+# except ModuleNotFoundError as e:
+#     print("Missing navx.  Carry on!")
+#     MISSING_NAVX = True
     
 try:
     from hal_impl.data import hal_data
@@ -30,6 +32,11 @@ from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
 from subsystems.extendPiston import extendPiston
 from subsystems.ballManipulator import BallManipulator, BallManipulatorController
+from subsystems.continuousServo import ContinuousRotationServo
+from subsystems.continuousServo import ContinuousRotationServoWithFeedback
+from subsystems.climber import Climber
+from subsystems.sonarSensor import SonarSensor
+from subsystems.visionSensor import VisionSensor
 
 LEFT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kLeft
 RIGHT_CONTROLLER_HAND = wpilib.interfaces.GenericHID.Hand.kRight
@@ -68,6 +75,17 @@ PISTON_RETRACT_ID = 5
 RETRACT_ID = 6
 EXTEND_ID = 7
 
+#servo
+SERVO0_CHANNEL = 0 #front left
+SERVO1_CHANNEL = 1 #front right
+SERVO2_CHANNEL = 2 #back left
+SERVO3_CHANNEL = 3 #back right
+
+
+# down sonar PIN numbers
+DOWN_SONAR_TRIGGER_PIN = 4
+DOWN_SONAR_ECHO_PIN = 5
+
 '''
 Raw Axes
 0 L X Axis
@@ -86,7 +104,7 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorController = ElevatorController(self.operator, self.logger)
 
         #GYRO
-        self.gyro = wpilib.AnalogGyro(1)
+        self.gyro = AHRS.create_spi()
 
         #DRIVETRAIN
         left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID)
@@ -120,20 +138,52 @@ class MyRobot(wpilib.TimedRobot):
         self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
-        self.encoder = FakeEncoder()
-        self.elevatorAttendant = ElevatorAttendant(self.encoder, 0, 100, -1, 1)
+        # down-facing sonar unit
+        self.downSonar = wpilib.Ultrasonic(DOWN_SONAR_TRIGGER_PIN, DOWN_SONAR_ECHO_PIN, Ultrasonic.Unit.kMillimeters)
+        self.downSonar.setPIDSourceType(wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement)
+        self.downSonar.setEnabled(True)
+        self.elevatorAttendant = ElevatorAttendant(self.downSonar, 0, 2000, -1, 1)
 
+        # remote sensors
+        #Vision sensor
+        self.visionSensor = VisionSensor('10.10.76.13', 5880, logger=self.logger)
+        #SERVO
+        self.servo0 = ContinuousRotationServo(SERVO0_CHANNEL)
+        self.servo1 = ContinuousRotationServo(SERVO1_CHANNEL)
+        self.servo2 = ContinuousRotationServo(SERVO2_CHANNEL)
+        self.servo3 = ContinuousRotationServo(SERVO3_CHANNEL)
+        #self.servo2 = ContinuousRotationServoWithFeedback(7, 3)
+        
+        self.climber = Climber(self.gyro, self.servo0, self.servo1, self.servo2, self.servo3)
+
+        self.timer = 0
+
+        #Sonar sensor
+        #self.sonarSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
+
+        # Elevator height sonar sensor
+        self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
+        self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.5, 1.0)
+
+        self.visionAttendant = VisionAttendant(self.visionSensor)
+
+        self.autoBalancing = False
 
     def robotPeriodic(self):
-        pass
+        # if self.timer % 50 == 0:
+        #     print("NavX Gyro Roll", self.gyro.getRoll())
+        self.timer += 1
 
     def teleopInit(self):
         """Executed at the start of teleop mode"""
-        
         self.forward = 0
+        self.downSonar.ping()
+        
+    def teleopPeriodic(self):
+
+        print("NavX Gyro Roll, ", self.gyro.getRoll(), "NavXX Gyro Pitch", self.gyro.getPitch())
         
 
-    def teleopPeriodic(self):
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
         max_accel = 0.3
@@ -143,9 +193,24 @@ class MyRobot(wpilib.TimedRobot):
         goal_forward = -self.driver.getRawAxis(5)
         #RAW AXIS 5 ON PRACTICE BOARD
         rotation_value = self.driver.getX(LEFT_CONTROLLER_HAND)
-
+        
         goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
-        rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
+
+        # # manual and autonomous driving will go here
+        # if self.driver.getBButton():
+        #     self.logger.info("Button B pressed, turn to target!")
+        #     self.visionAttendant.setSetpoint(0)
+        #     self.visionAttendant.move()
+        #     # if we are auton turning, we can override value with pid
+        #     rotation_value = self.visionAttendant.getTurnRate()
+        # else:
+        #     self.visionAttendant.stop()
+        #     rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
+            
+        # if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
+        #     self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
+        # else:
+        #     self.drivetrain.arcade_drive(self.forward, rotation_value)
 
         delta = goal_forward - self.forward
 
@@ -195,7 +260,6 @@ class MyRobot(wpilib.TimedRobot):
         # else:
         #     self.elevator.stop()
         
-        # manual and autonomous driving will go here
         
 
 
@@ -205,14 +269,25 @@ class MyRobot(wpilib.TimedRobot):
             self.elevatorAttendant.setSetpoint(setPoint)
             self.elevatorAttendant.move()
             self.elevator.set(self.elevatorAttendant.getHeightRate())
+            # logging to help figure out what is up...
+            heightRate = self.elevatorAttendant.getHeightRate()
+            if heightRate != 0:
+                self.logger.error("Elevator Height rate %f ", heightRate)
         else:
             self.elevatorAttendant.stop()
             self.elevator.set(setPoint)
-            
 
+        
         # Ball manipulator control
         ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
         self.ballManipulator.set(ballMotorSetPoint)
+
+        # Recieve range from sonarSensor
+        self.elevatorHeightSensor.receiveRangeUpdates()
+
+        # Recieve angle and range from visionSensor
+        self.visionSensor.receiveAngleUpdates()
+        #self.logger.info("Vision bearing %f degrees", self.visionSensor.bearing)
         
         #If proximity sensor = 0
             #self.encoder.reset()
@@ -228,6 +303,12 @@ class MyRobot(wpilib.TimedRobot):
         Start: Activate end game with Driver approval (8)
         '''
 
+        # SONAR
+        # if self.downSonar.isRangeValid():
+        #     self.logger.info("Sonar returns %f", self.downSonar.pidGet())
+        #     self.logger.info("Sonar inches %d", self.downSonar.getRangeInches())
+        #     self.downSonar.ping()
+
         #END GAME 
         whammyAxis = self.operator.getRawAxis(4)
         whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
@@ -241,16 +322,29 @@ class MyRobot(wpilib.TimedRobot):
 
         #The front (center) pistons will fire 0.25 seconds after the back pistons have been fired.
         if activate_pistons:
+            self.autoBalancing = True
             self.lift.raise_back()
-            time.sleep(0.25)
+            #time.sleep(0.25)
             self.lift.raise_center()
             self.logger.info("Raising all!")
         else:
             if release_center_pistons:
+                self.autoBalancing = False
                 self.lift.lower_center()
             if release_back_pistons:
+                self.autoBalancing = False
                 self.lift.lower_back()
-                
+
+        if self.autoBalancing == True:
+            self.climber.balanceMe()
+
+        if self.driver.getXButton():
+            self.climber.closeAllValves()
+        if self.driver.getAButton():
+            self.climber.openAllValves
+        if self.driver.getXButtonReleased():
+            self.climber.stopAll()
+
     def autonomousInit(self):
         #Because we want to drive during auton, just call the teleopInit() function to 
         #get everything from teleop.
@@ -260,22 +354,6 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousPeriodic(self):
         self.teleopPeriodic()
         print("auton periodic")
-        
-
-def createMasterAndSlaves(MASTER, slave1, slave2):
-    '''
-    First ID must be MASTER, Second ID must be slave TALON, Third ID must be slave VICTOR
-    This assumes that the left and right sides are the same, two talons and one victor. A talon must be the master.
-    '''
-    master_talon = ctre.WPI_TalonSRX(MASTER)
-
-    slave_talon = ctre.WPI_TalonSRX(slave1)
-    slave_talon.follow(master_talon)
-    
-    # if slave2 is not None:
-    slave_victor = ctre.victorspx.VictorSPX(slave2)
-    slave_victor.follow(master_talon)
-    return master_talon
 
 def createTalonAndSlaves(MASTER, slave1, slave2=None):
     '''
@@ -290,6 +368,37 @@ def createTalonAndSlaves(MASTER, slave1, slave2=None):
         slave_talon2 = ctre.WPI_TalonSRX(slave2)
         slave_talon2.follow(master_talon)
     return master_talon
+    
+class VisionAttendant:
+    def __init__(self, vision_sensor):
+        self.vision_sensor = vision_sensor
+        self.turnRate = 0
+
+        kP = 0.1
+        kI = 0.00
+        kD = 0.00
+        self.pid = wpilib.PIDController(kP, kI, kD, source=vision_sensor, output=self)
+        self.pid.setInputRange(-10, 10)
+        self.pid.setOutputRange(-.5, .5)
+
+    def pidWrite(self, output):
+        self.turnRate = output
+    
+    def getTurnRate(self):
+        """
+        I believe the left/right motors are switched
+        """
+        return -self.turnRate
+
+    def move(self):
+        self.pid.enable()
+    
+    def stop(self):
+        self.pid.disable()
+        self.turnRate = 0
+
+    def setSetpoint(self, angle):
+        self.pid.setSetpoint(angle)
 
 
 class FakeEncoder:
