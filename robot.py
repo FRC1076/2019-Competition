@@ -179,7 +179,8 @@ class MyRobot(wpilib.TimedRobot):
         
     def teleopPeriodic(self):
 
-        print("NavX Gyro Roll", self.gyro.getRoll())
+        print("NavX Gyro Roll, ", self.gyro.getRoll(), "NavXX Gyro Pitch", self.gyro.getPitch())
+        
 
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
@@ -237,11 +238,9 @@ class MyRobot(wpilib.TimedRobot):
 
         #Hatch grabber default state is open. When the 5th button on the guitar is pressed, the hatch grabber closes.
         if self.operator.getBumper(LEFT_CONTROLLER_HAND):
-            self.grabber.retract()
-        else:
             self.grabber.extend()
-
-        
+        else:
+            self.grabber.retract()
 
         #DRIVER TEMPORARY ELEVATOR CONTROL 
         '''

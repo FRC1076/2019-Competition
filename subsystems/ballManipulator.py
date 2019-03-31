@@ -64,15 +64,14 @@ class BallManipulatorController:
                 setPoint = -rotation_speed
         
 
-        if self.controller.getYButton():
-            if whammyBarPressed:
-                setPoint = rotation_speed
-            else:
-                setPoint = -rotation_speed
-
-            if self.logger is not None:
-                self.logger.info("BallManipulatorController: button Y has been pressed")
-                self.logger.info("%s whammy bar", "WITH" if whammyBarPressed else "WITHOUT")
-                self.logger.info("%d Rotation Speed", rotation_speed )
-                self.logger.info("%d Operator POV", strum)
+        # if self.controller.getYButton():
+        #     if whammyBarPressed:
+        #         setPoint = rotation_speed
+        #     else:
+        #         setPoint = -rotation_speed
+            # if self.logger is not None:
+            #     self.logger.info("BallManipulatorController: button Y has been pressed")
+            #     self.logger.info("%s whammy bar", "WITH" if whammyBarPressed else "WITHOUT")
+            #     self.logger.info("%d Rotation Speed", rotation_speed )
+            #     self.logger.info("%d Operator POV", strum)
         return setPoint
