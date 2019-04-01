@@ -322,7 +322,7 @@ class MyRobot(wpilib.TimedRobot):
 
         #The front (center) pistons will fire 0.25 seconds after the back pistons have been fired.
         if activate_pistons:
-            self.autoBalancing = True
+            #self.autoBalancing = True
             self.lift.raise_back()
             #time.sleep(0.25)
             self.lift.raise_center()
@@ -331,10 +331,17 @@ class MyRobot(wpilib.TimedRobot):
             if release_center_pistons:
                 self.autoBalancing = False
                 self.lift.lower_center()
-            if release_back_pistons:
+            elif release_back_pistons:
                 self.autoBalancing = False
                 self.lift.lower_back()
+            # elif self.operator.getAButton():
+            #     self.autoBalancing = False
 
+        if self.operator.getAButton():
+            self.autoBalancing = True
+        if self.operator.getAButtonReleased():
+            self.autoBalancing = False
+            
         if self.autoBalancing == True:
             self.climber.balanceMe()
 
