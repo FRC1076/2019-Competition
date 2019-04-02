@@ -76,10 +76,10 @@ RETRACT_ID = 6
 EXTEND_ID = 7
 
 #servo
-SERVO0_CHANNEL = 0 #front left
-SERVO1_CHANNEL = 1 #front right
-SERVO2_CHANNEL = 2 #back left
-SERVO3_CHANNEL = 3 #back right
+SERVO0_CHANNEL = 0 
+SERVO1_CHANNEL = 1 
+SERVO2_CHANNEL = 2 
+SERVO3_CHANNEL = 3 
 
 
 # down sonar PIN numbers
