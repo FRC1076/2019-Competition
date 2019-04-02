@@ -361,8 +361,45 @@ class MyRobot(wpilib.TimedRobot):
         print("auton init")
 
     def autonomousPeriodic(self):
-        self.teleopPeriodic()
-        print("auton periodic")
+        # self.teleopPeriodic()
+        # print("auton periodic")
+        if self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND):
+            turn_value = -1
+        else:
+            turn_value = 1
+
+        #If left trigger held, open valves
+        if self.driver.getAButton(): 
+            self.servo0.turn(turn_value)
+        if self.driver.getAButtonReleased():
+            self.servo0.stopMotor()
+
+        if self.driver.getXButton():
+            self.servo1.turn(turn_value)
+        if self.driver.getXButtonReleased():
+            self.servo1.stopMotor()
+
+        if self.driver.getYButton():
+            self.servo2.turn(turn_value)
+        if self.driver.getYButtonReleased():
+            self.servo2.stopMotor()
+
+        if self.driver.getBButton():
+            self.servo3.turn(turn_value)
+        if self.driver.getBButtonReleased():
+            self.servo3.stopMotor()
+       
+        if self.driver.getStartButton():
+            self.climber.openAllValves()
+        if self.driver.getBackButton():
+            self.climber.closeAllValves()
+
+        if self.driver.getStartButtonReleased():
+            self.climber.stopAll()
+        if self.driver.getBackButtonReleased():
+            self.climber.stopAll()
+
+
 
 def createTalonAndSlaves(MASTER, slave1, slave2=None):
     '''
