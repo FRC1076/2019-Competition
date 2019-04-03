@@ -165,10 +165,11 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
         self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.5, 1.0)
 
-        self.visionAttendant = VisionAttendant(self.visionSensor)
+        #self.visionAttendant = VisionAttendant(self.visionSensor)
 
         self.autoBalancing = False
 
+        #self.pdp_small = wpilib.pdb
     def robotPeriodic(self):
         # if self.timer % 50 == 0:
         #     print("NavX Gyro Roll", self.gyro.getRoll())
@@ -178,6 +179,8 @@ class MyRobot(wpilib.TimedRobot):
         """Executed at the start of teleop mode"""
         self.forward = 0
         self.downSonar.ping()
+        
+        self.climber.reset()
         
     def teleopPeriodic(self):
 
@@ -323,9 +326,7 @@ class MyRobot(wpilib.TimedRobot):
         #The front (center) pistons will fire 0.25 seconds after the back pistons have been fired.
         if activate_pistons:
             #self.autoBalancing = True
-            self.lift.raise_back()
-            #time.sleep(0.25)
-            self.lift.raise_center()
+            self.lift.raise_all()
             self.logger.info("Raising all!")
         else:
             if release_center_pistons:
@@ -344,6 +345,8 @@ class MyRobot(wpilib.TimedRobot):
             
         if self.autoBalancing == True:
             self.climber.balanceMe()
+        if self.autoBalancing == False:
+            self.climber.stopAll()
 
         if self.driver.getXButton():
             self.climber.closeAllValves()

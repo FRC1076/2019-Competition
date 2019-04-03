@@ -23,7 +23,8 @@ class Climber:
         self.rollTarget = 0
         self.pitchTarget = 0
 
-        self.leanSequence = [ (0,0) , (3,10) , (3,20) ]
+        #self.leanSequence = [ (0,0) , (3,10) , (3,20) ]
+        self.leanSequence = [ (0,0) ]
         self.thisLeanSequence = [(0,0)]
   
     def balanceMeToo(self): #-1 is open, 1 is close
@@ -32,8 +33,13 @@ class Climber:
             self.tilt_thread = Thread(target=Climber.leanTimed, args=(self,))
             self.tilt_thread.start()
 
-        roll_value = self.gyro.getRoll()
-        pitch_value = self.gyro.getPitch()
+        if self.roll_offset is None:
+            self.roll_offset = self.gyro.getRoll()
+        if self.pitch_offset is None:
+            self.pitch_offset = self.gyro.getPitch()
+
+        roll_value = self.gyro.getRoll() - self.roll_offset
+        pitch_value = self.gyro.getPitch() - self.pitch_offset
 
         if abs(roll_value - self.rollTarget) > ROLL_TOL or abs(pitch_value - self.pitchTarget) > PITCH_TOL:
             if roll_value < self.rollTarget: #left side high
@@ -51,6 +57,12 @@ class Climber:
             self.servo1.turn(-1)
             self.servo2.turn(-1)
             self.servo3.turn(-1)
+
+    def reset(self):
+        self.roll_offset = None
+        self.pitch_offset = None
+
+        self.stopAll()
 
     def balanceMe(self):
 
