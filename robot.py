@@ -87,7 +87,8 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorController = ElevatorController(self.operator, self.logger)
 
         #GYRO
-        self.gyro = wpilib.AnalogGyro(1)
+        self.gyro = AHRS.create_spi()
+        self.gyro.setPIDSourceType(wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement)
 
         #DRIVETRAIN
         left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID)
@@ -124,7 +125,8 @@ class MyRobot(wpilib.TimedRobot):
 
         # remote sensors
         #Vision sensor
-        self.visionSensor = VisionSensor('10.10.76.13', 5880, logger=self.logger)
+        # self.visionSensor = VisionSensor('10.10.76.13', 5880, logger=self.logger)
+        # self.visionSensor = self.gyro # .('10.10.76.13', 5880, logger=self.logger)
 
         #Sonar sensor
         #self.sonarSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
@@ -133,7 +135,8 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
         self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.5, 1.0)
 
-        self.visionAttendant = VisionAttendant(self.visionSensor)
+        # self.visionAttendant = VisionAttendant(self.visionSensor)
+        self.gyroAttendant = GyroAttendant(self.gyro)
 
     def robotPeriodic(self):
         pass
@@ -157,13 +160,21 @@ class MyRobot(wpilib.TimedRobot):
 
         # manual and autonomous driving will go here
         if self.driver.getBButton():
-            self.logger.info("Button B pressed, turn to target!")
-            self.visionAttendant.setSetpoint(0)
-            self.visionAttendant.move()
-            # if we are auton turning, we can override value with pid
-            rotation_value = self.visionAttendant.getTurnRate()
+            if False:
+                self.logger.info("VISION, turn to target at turn rate %f", self.visionAttendant.getTurnRate())
+                # self.gyro.getAngle()
+                self.visionAttendant.setSetpoint(0)
+                self.visionAttendant.move()
+                # if we are auton turning, we can override value with pid
+                rotation_value = self.visionAttendant.getTurnRate()
+            else:
+                self.logger.error("GYRO, turn to target at turn rate %f", self.gyroAttendant.getTurnRate())
+                self.gyroAttendant.setSetpoint(-25)
+                self.gyroAttendant.move()
+                # if we are auton turning, we can override value with pid
+                rotation_value = self.gyroAttendant.getTurnRate()
         else:
-            self.visionAttendant.stop()
+            # self.visionAttendant.stop()
             rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
             
         self.drivetrain.arcade_drive(goal_forward, rotation_value)
@@ -237,8 +248,8 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorHeightSensor.receiveRangeUpdates()
 
         # Recieve angle and range from visionSensor
-        self.visionSensor.receiveAngleUpdates()
-        self.logger.info("Vision bearing %f degrees", self.visionSensor.bearing)
+        #self.visionSensor.receiveAngleUpdates()
+        #self.logger.info("VISION bearing %f degrees", self.visionSensor.bearing)
         
         #If proximity sensor = 0
             #self.encoder.reset()
@@ -328,6 +339,36 @@ class VisionAttendant:
     def setSetpoint(self, angle):
         self.pid.setSetpoint(angle)
 
+class GyroAttendant:
+    def __init__(self, gyro_sensor):
+        self.gyro_sensor = gyro_sensor
+        self.turnRate = 0
+
+        kP = 0.1
+        kI = 0.00
+        kD = 0.00
+        self.pid = wpilib.PIDController(kP, kI, kD, source=gyro_sensor, output=self)
+        self.pid.setInputRange(-25, 25)
+        self.pid.setOutputRange(-.5, .5)
+
+    def pidWrite(self, output):
+        self.turnRate = output
+    
+    def getTurnRate(self):
+        """
+        I believe the left/right motors are switched
+        """
+        return -self.turnRate
+
+    def move(self):
+        self.pid.enable()
+    
+    def stop(self):
+        self.pid.disable()
+        self.turnRate = 0
+
+    def setSetpoint(self, angle):
+        self.pid.setSetpoint(angle)
 
 class FakeEncoder:
     def pidGet(self):
