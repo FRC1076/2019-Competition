@@ -44,14 +44,14 @@ class Climber:
         if abs(roll_value - self.rollTarget) > ROLL_TOL or abs(pitch_value - self.pitchTarget) > PITCH_TOL:
             if roll_value < self.rollTarget: #left side high
                 if pitch_value < self.pitchTarget: #back high
-                    self.servo1.stopMotor()      
+                    self.servo2.stopMotor()      
                 else: #front high
-                    self.servo3.stopMotor()
+                    self.servo0.stopMotor()
             else: #right side high
                 if pitch_value < self.pitchTarget: #back high
-                    self.servo0.stopMotor()
+                    self.servo3.stopMotor()
                 else: # front high
-                    self.servo2.stopMotor()
+                    self.servo1.stopMotor()
         else:
             self.servo0.turn(-1)
             self.servo1.turn(-1)
