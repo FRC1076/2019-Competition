@@ -87,7 +87,8 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorController = ElevatorController(self.operator, self.logger)
 
         #GYRO
-        self.gyro = AHRS.create_spi()
+        # self.gyro = AHRS.create_spi()
+        self.gyro = wpilib.AnalogGyro(0)
         self.gyro.setPIDSourceType(wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement)
 
         #DRIVETRAIN
@@ -344,11 +345,11 @@ class GyroAttendant:
         self.gyro_sensor = gyro_sensor
         self.turnRate = 0
 
-        kP = 0.1
-        kI = 0.00
-        kD = 0.00
+        kP = 0.03
+        kI = 0.00177
+        kD = 0.0
         self.pid = wpilib.PIDController(kP, kI, kD, source=gyro_sensor, output=self)
-        self.pid.setInputRange(-25, 25)
+        self.pid.setInputRange(-90, 90)
         self.pid.setOutputRange(-.5, .5)
 
     def pidWrite(self, output):
