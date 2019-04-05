@@ -221,7 +221,7 @@ class MyRobot(wpilib.TimedRobot):
 
         #If the driver holds the right trigger down, we will go half speed forward 
         # and backward and 75% speed when turning.
-        if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
+        if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND) > 0.35:
             self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
         else:
            self.drivetrain.arcade_drive(self.forward, rotation_value) 
