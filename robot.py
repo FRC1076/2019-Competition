@@ -240,9 +240,9 @@ class MyRobot(wpilib.TimedRobot):
 
         #Hatch grabber default state is open. When the 5th button on the guitar is pressed, the hatch grabber closes.
         if self.operator.getBumper(LEFT_CONTROLLER_HAND):
-            self.grabber.extend()
-        else:
             self.grabber.retract()
+        else:
+            self.grabber.extend()
 
         #DRIVER TEMPORARY ELEVATOR CONTROL 
         '''
@@ -322,21 +322,21 @@ class MyRobot(wpilib.TimedRobot):
 
         #The front (center) pistons will fire 0.25 seconds after the back pistons have been fired.
         if activate_pistons:
-            self.autoBalancing = True
+            #self.autoBalancing = True
             self.lift.raise_back()
-            #time.sleep(0.25)
+            time.sleep(0.28)
             self.lift.raise_center()
             self.logger.info("Raising all!")
         else:
             if release_center_pistons:
-                self.autoBalancing = False
+                #self.autoBalancing = False
                 self.lift.lower_center()
             if release_back_pistons:
-                self.autoBalancing = False
+                #self.autoBalancing = False
                 self.lift.lower_back()
 
-        if self.autoBalancing == True:
-            self.climber.balanceMe()
+        # if self.autoBalancing == True:
+        #     self.climber.balanceMe()
 
         if self.driver.getXButton():
             self.climber.closeAllValves()
