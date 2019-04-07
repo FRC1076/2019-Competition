@@ -324,7 +324,7 @@ class MyRobot(wpilib.TimedRobot):
         if activate_pistons:
             #self.autoBalancing = True
             self.lift.raise_back()
-            time.sleep(0.28)
+            time.sleep(0.265)
             self.lift.raise_center()
             self.logger.info("Raising all!")
         else:
