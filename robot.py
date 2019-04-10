@@ -47,7 +47,7 @@ PCM_CAN_ID = 0
 #DRIVETRAIN IDs (talon and victor)
 LEFT_MASTER_ID = 1
 LEFT_SLAVE_1_ID = 2
-LEFT_SLAVE_2_ID = 10
+LEFT_SLAVE_2_ID = 3
 
 RIGHT_MASTER_ID = 4
 RIGHT_SLAVE_1_ID = 5
@@ -61,9 +61,6 @@ ELEVATOR_ID_SLAVE = 8
 BALL_MANIP_ID = 9
 
 #LIFT PISTON IDs (solenoid)
-CENTER_EXTEND_ID = 0
-CENTER_RETRACT_ID = 1
-
 BACK_EXTEND_ID = 2
 BACK_RETRACT_ID = 3
 
@@ -107,8 +104,8 @@ class MyRobot(wpilib.TimedRobot):
         self.gyro = AHRS.create_spi()
 
         #DRIVETRAIN
-        left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID)
-        right = createTalonAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID)
+        left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID, LEFT_SLAVE_2_ID)
+        right = createTalonAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID, RIGHT_SLAVE_2_ID)
         self.drivetrain = Drivetrain(left, right, self.gyro)
 
         #HATCH GRABBER
@@ -127,10 +124,7 @@ class MyRobot(wpilib.TimedRobot):
         The lift is being controlled by four pistons, but two doublesolenoids due to electrical chaining 4 together to make
         space on the solenoid module.
         '''
-        self.lift = Lift(
-                wpilib.DoubleSolenoid(PCM_CAN_ID, CENTER_EXTEND_ID, CENTER_RETRACT_ID), 
-                wpilib.DoubleSolenoid(PCM_CAN_ID, BACK_EXTEND_ID, BACK_RETRACT_ID)
-        )
+        self.lift = Lift(wpilib.DoubleSolenoid(PCM_CAN_ID, BACK_EXTEND_ID, BACK_RETRACT_ID))
         
         #ELEVATOR
         elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
@@ -318,19 +312,16 @@ class MyRobot(wpilib.TimedRobot):
 
         activate_pistons = driver_activate and whammy_down
         release_back_pistons = self.driver.getBackButton() 
-        release_center_pistons = self.driver.getStartButton()
+        #release_center_pistons = self.driver.getStartButton()
 
         #The front (center) pistons will fire 0.25 seconds after the back pistons have been fired.
         if activate_pistons:
             #self.autoBalancing = True
             self.lift.raise_back()
-            time.sleep(0.265)
-            self.lift.raise_center()
-            self.logger.info("Raising all!")
+            # time.sleep(0.265)
+            # self.lift.raise_center()
+            # self.logger.info("Raising all!")
         else:
-            if release_center_pistons:
-                #self.autoBalancing = False
-                self.lift.lower_center()
             if release_back_pistons:
                 #self.autoBalancing = False
                 self.lift.lower_back()
