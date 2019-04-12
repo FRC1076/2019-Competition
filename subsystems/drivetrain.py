@@ -32,8 +32,10 @@ class Drivetrain:
 
     def arcade_drive(self, forward, rotate):
         self.robot_drive.arcadeDrive(forward, rotate)
+        right_power = self.right.get()
         left_power = self.left.get()
-        self.left.set(left_power*0.75)
+        self.left.set(left_power*0.85)
+        self.right.set(right_power*0.85)
             # self.integral = 0
     def stop(self):
         self.robot_drive.stopMotor()
