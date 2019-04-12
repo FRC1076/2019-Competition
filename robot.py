@@ -179,8 +179,9 @@ class MyRobot(wpilib.TimedRobot):
         
 
         #ARCADE DRIVE CONTROL
+        
         deadzone_value = 0.2
-        max_accel = 0.3
+        max_accel = 0.15
         max_forward = 1.0
         max_rotate = 1.0
 
@@ -234,9 +235,9 @@ class MyRobot(wpilib.TimedRobot):
 
         #Hatch grabber default state is open. When the 5th button on the guitar is pressed, the hatch grabber closes.
         if self.operator.getBumper(LEFT_CONTROLLER_HAND):
-            self.grabber.retract()
-        else:
             self.grabber.extend()
+        else:
+            self.grabber.retract()
 
         #DRIVER TEMPORARY ELEVATOR CONTROL 
         '''
