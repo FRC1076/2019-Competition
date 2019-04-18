@@ -76,9 +76,9 @@ class ElevatorController:
         WHAMMY_BAR_RAW_AXIS_INDEX = 4
         triggerAxisValue = self.controller.getRawAxis(WHAMMY_BAR_RAW_AXIS_INDEX)
         
-        if self.logger is not None:
-            if (self.damper % 50) == 0:
-                self.logger.info("getRawAxis(WHAMMY) value = %f", triggerAxisValue)
+        # if self.logger is not None:
+        #     if (self.damper % 50) == 0:
+        #         self.logger.info("getRawAxis(WHAMMY) value = %f", triggerAxisValue)
                 
         whammyBarPressed = (triggerAxisValue > -0.7 and not (triggerAxisValue == 0))
         runElevator = True     # assume running unless no buttons pressed

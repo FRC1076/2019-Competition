@@ -9,6 +9,7 @@ from wpilib import Ultrasonic
 from wpilib import DoubleSolenoid
 from navx import AHRS
 from wpilib.interfaces import GenericHID
+from networktables import NetworkTables
 # try:
 #     from navx import AHRS
 #     MISSING_NAVX = False
@@ -83,6 +84,8 @@ SERVO3_CHANNEL = 3 #back right
 DOWN_SONAR_TRIGGER_PIN = 4
 DOWN_SONAR_ECHO_PIN = 5
 
+TOLERANCE_DEGREES = 2
+
 '''
 Raw Axes
 0 L X Axis
@@ -95,6 +98,10 @@ Raw Axes
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
+        NetworkTables.initialize()
+        self.sd = NetworkTables.getTable("SmartDashboard")
+
+        
         #assigns driver as controller 0 and operator as controller 1
         self.driver = wpilib.XboxController(0)
         self.operator = wpilib.XboxController(1)
@@ -140,7 +147,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # remote sensors
         #Vision sensor
-        self.visionSensor = VisionSensor('10.10.76.13', 5880, logger=self.logger)
+        self.visionSensor = VisionSensor(self.sd, logger=self.logger)
         #SERVO
         self.servo0 = ContinuousRotationServo(SERVO0_CHANNEL)
         self.servo1 = ContinuousRotationServo(SERVO1_CHANNEL)
@@ -156,12 +163,15 @@ class MyRobot(wpilib.TimedRobot):
         #self.sonarSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
 
         # Elevator height sonar sensor
-        self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
-        self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.5, 1.0)
+        #self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
+        #self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.5, 1.0)
 
         self.visionAttendant = VisionAttendant(self.visionSensor)
 
         self.autoBalancing = False
+
+        
+
 
     def robotPeriodic(self):
         # if self.timer % 50 == 0:
@@ -172,10 +182,14 @@ class MyRobot(wpilib.TimedRobot):
         """Executed at the start of teleop mode"""
         self.forward = 0
         self.downSonar.ping()
+
+        self.visionAttendant.initialize()
         
     def teleopPeriodic(self):
 
-        print("NavX Gyro Roll, ", self.gyro.getRoll(), "NavXX Gyro Pitch", self.gyro.getPitch())
+        #print("NavX Gyro Roll, ", self.gyro.getRoll(), "NavX Gyro Pitch", self.gyro.getPitch())
+         
+        
         
 
         #ARCADE DRIVE CONTROL
@@ -192,15 +206,15 @@ class MyRobot(wpilib.TimedRobot):
         goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
 
         # # manual and autonomous driving will go here
-        # if self.driver.getBButton():
-        #     self.logger.info("Button B pressed, turn to target!")
-        #     self.visionAttendant.setSetpoint(0)
-        #     self.visionAttendant.move()
-        #     # if we are auton turning, we can override value with pid
-        #     rotation_value = self.visionAttendant.getTurnRate()
-        # else:
-        #     self.visionAttendant.stop()
-        #     rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
+        if self.driver.getBButton():
+            self.logger.info("Button B pressed, turn to target!")
+            self.visionAttendant.setSetpoint(0)
+            self.visionAttendant.move()
+            # if we are auton turning, we can override value with pid
+            rotation_value = self.visionAttendant.getTurnRate()
+        else:
+            self.visionAttendant.stop()
+            rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
             
         # if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
         #     self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
@@ -278,7 +292,7 @@ class MyRobot(wpilib.TimedRobot):
         self.ballManipulator.set(ballMotorSetPoint)
 
         # Recieve range from sonarSensor
-        self.elevatorHeightSensor.receiveRangeUpdates()
+        #self.elevatorHeightSensor.receiveRangeUpdates()
 
         # Recieve angle and range from visionSensor
         self.visionSensor.receiveAngleUpdates()
@@ -362,16 +376,36 @@ def createTalonAndSlaves(MASTER, slave1, slave2=None):
     return master_talon
     
 class VisionAttendant:
-    def __init__(self, vision_sensor):
+    def __init__(self, vision_sensor, logger=None):
+
+        self.logger = logger
+
         self.vision_sensor = vision_sensor
+        #self.network_tables = network_tables
         self.turnRate = 0
 
         kP = 0.1
-        kI = 0.00
-        kD = 0.00
-        self.pid = wpilib.PIDController(kP, kI, kD, source=vision_sensor, output=self)
+        kI = 0
+        kD = 0
+
+        self.pid = wpilib.PIDController(kP, kI, kD, source=self.vision_sensor, output=self)
         self.pid.setInputRange(-10, 10)
         self.pid.setOutputRange(-.5, .5)
+        self.pid.setAbsoluteTolerance(TOLERANCE_DEGREES)
+
+        # self.sdWidget = wpilib.SmartDashboard.getData("Vision-Controller")
+    def initialize(self):
+        wpilib.SmartDashboard.putData("Vision-Controller", self.pid)
+        self.sdWidget = wpilib.SmartDashboard.getData("Vision-Controller")
+
+
+        kP = self.sdWidget.getP()
+        kI = self.sdWidget.getI()
+        kD = self.sdWidget.getD()
+        
+        if self.logger is not None:
+            self.logger.info("Got kP %f " , kP)
+
 
     def pidWrite(self, output):
         self.turnRate = output
