@@ -47,7 +47,7 @@ PCM_CAN_ID = 0
 #DRIVETRAIN IDs (talon and victor)
 LEFT_MASTER_ID = 1
 LEFT_SLAVE_1_ID = 2
-LEFT_SLAVE_2_ID = 10
+LEFT_SLAVE_2_ID = 3
 
 RIGHT_MASTER_ID = 4
 RIGHT_SLAVE_1_ID = 5
@@ -107,8 +107,8 @@ class MyRobot(wpilib.TimedRobot):
         self.gyro = AHRS.create_spi()
 
         #DRIVETRAIN
-        left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID)
-        right = createTalonAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID)
+        left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID, LEFT_SLAVE_2_ID)
+        right = createTalonAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID, RIGHT_SLAVE_2_ID)
         self.drivetrain = Drivetrain(left, right, self.gyro)
 
         #HATCH GRABBER
@@ -189,7 +189,7 @@ class MyRobot(wpilib.TimedRobot):
 
         #ARCADE DRIVE CONTROL
         deadzone_value = 0.2
-        max_accel = 0.3
+        max_accel = 0.15
         max_forward = 1.0
         max_rotate = 1.0
 
@@ -330,32 +330,32 @@ class MyRobot(wpilib.TimedRobot):
             self.logger.info("Raising all!")
         else:
             if release_center_pistons:
-                self.autoBalancing = False
+                #self.autoBalancing = False
                 self.lift.lower_center()
             elif release_back_pistons:
-                self.autoBalancing = False
+                #self.autoBalancing = False
                 self.lift.lower_back()
             # elif self.operator.getAButton():
             #     self.autoBalancing = False
 
-        if self.operator.getAButton():
-            self.autoBalancing = True
-        if self.operator.getAButtonReleased():
-            self.autoBalancing = False
+        # if self.operator.getAButton():
+        #     self.autoBalancing = True
+        # if self.operator.getAButtonReleased():
+        #     self.autoBalancing = False
             
-        if self.autoBalancing == True:
-            self.climber.balanceMe()
-        if self.autoBalancing == False:
-            self.climber.stopAll()
+        # if self.autoBalancing == True:
+        #     self.climber.balanceMe()
+        # if self.autoBalancing == False:
+        #     self.climber.stopAll()
 
-        if self.driver.getXButton():
-            self.climber.closeAllValves()
-        if self.driver.getAButton():
-            self.climber.openAllValves()
-        if self.driver.getXButtonReleased():
-            self.climber.stopAll()
-        if self.driver.getAButtonReleased():
-            self.climber.stopAll()
+        # if self.driver.getXButton():
+        #     self.climber.closeAllValves()
+        # if self.driver.getAButton():
+        #     self.climber.openAllValves()
+        # if self.driver.getXButtonReleased():
+        #     self.climber.stopAll()
+        # if self.driver.getAButtonReleased():
+        #     self.climber.stopAll()
 
     def autonomousInit(self):
         #Because we want to drive during auton, just call the teleopInit() function to 
