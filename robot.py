@@ -108,42 +108,34 @@ class MyRobot(wpilib.TimedRobot):
         self.elevatorController = ElevatorController(self.operator, self.logger)
 
         #GYRO
-        self.gyro = AHRS.create_spi()
+        #self.gyro = AHRS.create_spi()
 
         #DRIVETRAIN
-        left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID, LEFT_SLAVE_2_ID)
-        right = createTalonAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID, RIGHT_SLAVE_2_ID)
-        self.drivetrain = Drivetrain(left, right, self.gyro)
+        left = createTalonAndSlaves(LEFT_MASTER_ID, LEFT_SLAVE_1_ID)
+        right = createTalonAndSlaves(RIGHT_MASTER_ID, RIGHT_SLAVE_1_ID)
+        self.drivetrain = Drivetrain(left, right, None)
 
         #HATCH GRABBER
-        self.grabber = Grabber(
-            hatch = wpilib.DoubleSolenoid(PCM_CAN_ID, EXTEND_ID, RETRACT_ID))
+        #self.grabber = Grabber(
+        #    hatch = wpilib.DoubleSolenoid(PCM_CAN_ID, EXTEND_ID, RETRACT_ID))
 
         #ball manipulator and controller
         self.ballManipulator = BallManipulator(ctre.WPI_TalonSRX(BALL_MANIP_ID))
         self.ballManipulatorController = BallManipulatorController(self.operator, self.logger)
 
         #EXTEND HATCH GRABBER 
-        self.piston = extendPiston(piston=wpilib.DoubleSolenoid(PCM_CAN_ID, PISTON_EXTEND_ID, PISTON_RETRACT_ID))
-
         #LIFT
         '''
         The lift is being controlled by four pistons, but two doublesolenoids due to electrical chaining 4 together to make
         space on the solenoid module.
         '''
-        self.lift = Lift(wpilib.DoubleSolenoid(PCM_CAN_ID, BACK_EXTEND_ID, BACK_RETRACT_ID))
-        
         #ELEVATOR
-        elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
+        #elevator_motor = createTalonAndSlaves(ELEVATOR_ID_MASTER, ELEVATOR_ID_SLAVE)
         #elevator_motor = ctre.WPI_TalonSRX(ELEVATOR_ID_MASTER)
-        self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
+        #self.elevator = Elevator(elevator_motor, encoder_motor=elevator_motor)
         #.WPI_TalonSRX
         #self.ahrs = AHRS.create_spi()
         # down-facing sonar unit
-        self.downSonar = wpilib.Ultrasonic(DOWN_SONAR_TRIGGER_PIN, DOWN_SONAR_ECHO_PIN, Ultrasonic.Unit.kMillimeters)
-        self.downSonar.setPIDSourceType(wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement)
-        self.downSonar.setEnabled(True)
-        self.elevatorAttendant = ElevatorAttendant(self.downSonar, 0, 2000, -1, 1)
 
         # remote sensors
         #Vision sensor
@@ -155,7 +147,6 @@ class MyRobot(wpilib.TimedRobot):
         self.servo3 = ContinuousRotationServo(SERVO3_CHANNEL)
         #self.servo2 = ContinuousRotationServoWithFeedback(7, 3)
         
-        self.climber = Climber(self.gyro, self.servo0, self.servo1, self.servo2, self.servo3)
 
         self.timer = 0
 
@@ -181,7 +172,6 @@ class MyRobot(wpilib.TimedRobot):
     def teleopInit(self):
         """Executed at the start of teleop mode"""
         self.forward = 0
-        self.downSonar.ping()
 
         self.visionAttendant.initialize()
         
@@ -237,87 +227,6 @@ class MyRobot(wpilib.TimedRobot):
         # self.drivetrain.arcade_drive(goal_forward, rotation_value)
 
         #4BAR CONTROL
-        '''
-        Left bumper = retract intake (piston in)
-        Right bumper = extend intake beyond frame perimeter (piston out)
-
-        '''
-        if self.driver.getBumper(LEFT_CONTROLLER_HAND):
-            self.piston.retract()
-        elif self.driver.getBumper(RIGHT_CONTROLLER_HAND):
-            self.piston.extend()
-
-        #Hatch grabber default state is open. When the 5th button on the guitar is pressed, the hatch grabber closes.
-        if self.operator.getBumper(LEFT_CONTROLLER_HAND):
-            self.grabber.extend()
-        else:
-            self.grabber.retract()
-
-        #DRIVER TEMPORARY ELEVATOR CONTROL 
-        '''
-        Left trigger is go up, Right trigger is go down 
-        '''
-        # left_trigger = self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND)
-        # right_trigger = self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND)
-
-        # TRIGGER_LEVEL = 0.5
-
-        # if abs(left_trigger) > TRIGGER_LEVEL:
-        #     self.elevator.go_up(self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND))
-        # elif abs(right_trigger) > TRIGGER_LEVEL:
-        #     self.elevator.go_down(self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND))
-        # else:
-        #     self.elevator.stop()
-        
-        
-
-
-        #ELEVATOR CONTROL
-        (elevateToHeight, setPoint) = self.elevatorController.getOperation()
-        if elevateToHeight:
-            self.elevatorAttendant.setSetpoint(setPoint)
-            self.elevatorAttendant.move()
-            self.elevator.set(self.elevatorAttendant.getHeightRate())
-            # logging to help figure out what is up...
-            heightRate = self.elevatorAttendant.getHeightRate()
-            if heightRate != 0:
-                self.logger.error("Elevator Height rate %f ", heightRate)
-        else:
-            self.elevatorAttendant.stop()
-            self.elevator.set(setPoint)
-
-        
-        # Ball manipulator control
-        ballMotorSetPoint = self.ballManipulatorController.getSetPoint()
-        self.ballManipulator.set(ballMotorSetPoint)
-
-        # Recieve range from sonarSensor
-        #self.elevatorHeightSensor.receiveRangeUpdates()
-
-        # Recieve angle and range from visionSensor
-        self.visionSensor.receiveAngleUpdates()
-        #self.logger.info("Vision bearing %f degrees", self.visionSensor.bearing)
-        
-        #If proximity sensor = 0
-            #self.encoder.reset()
-
-        '''
-        Guitar Hero controls
-        1: Hatch Panel Low. 1+Wammy: Cargo Low (1, z!=0)
-        2: Hatch Panel Middle. 2+wammy: Cargo Middle (2, z!=0)
-        3: Hatch Panel High. 3+wammy: Cargo High (4, z!=0)
-        (1-3 elevator positions = 2 CIM motors in a toughbox gearbox)
-        4: Cargo intake IN. 4+wammy: Cargo intake out (single motor tbd) (3, z!=0)
-        5: Hatch Panel grab (piston out). 5+wammy: Hatch Panel release (piston in). (5, z!=0)
-        Start: Activate end game with Driver approval (8)
-        '''
-
-        # SONAR
-        # if self.downSonar.isRangeValid():
-        #     self.logger.info("Sonar returns %f", self.downSonar.pidGet())
-        #     self.logger.info("Sonar inches %d", self.downSonar.getRangeInches())
-        #     self.downSonar.ping()
-
         #END GAME 
         whammyAxis = self.operator.getRawAxis(4)
         whammy_down = (whammyAxis > -0.7 and not (whammyAxis == 0))
@@ -330,27 +239,9 @@ class MyRobot(wpilib.TimedRobot):
         #release_center_pistons = self.driver.getStartButton()
 
         #The front (center) pistons will fire 0.25 seconds after the back pistons have been fired.
-        if activate_pistons:
-            #self.autoBalancing = True
-            self.lift.raise_back()
-            # time.sleep(0.265)
-            # self.lift.raise_center()
-            # self.logger.info("Raising all!")
-        else:
-            if release_back_pistons:
-                #self.autoBalancing = False
-                self.lift.lower_back()
 
         # if self.autoBalancing == True:
         #     self.climber.balanceMe()
-
-        if self.driver.getXButton():
-            self.climber.closeAllValves()
-        if self.driver.getAButton():
-            self.climber.openAllValves
-        if self.driver.getXButtonReleased():
-            self.climber.stopAll()
-
     def autonomousInit(self):
         #Because we want to drive during auton, just call the teleopInit() function to 
         #get everything from teleop.
@@ -384,12 +275,12 @@ class VisionAttendant:
         #self.network_tables = network_tables
         self.turnRate = 0
 
-        kP = 0.1
-        kI = 0
+        kP = 0.01
+        kI = 0.0
         kD = 0
 
-        self.pid = wpilib.PIDController(kP, kI, kD, source=self.vision_sensor, output=self)
-        self.pid.setInputRange(-10, 10)
+        self.pid = wpilib.PIDController(kP, kI, kD, source=self.vision_sensor, output=self, period=0.05)
+        self.pid.setInputRange(-30, 30)
         self.pid.setOutputRange(-.5, .5)
         self.pid.setAbsoluteTolerance(TOLERANCE_DEGREES)
 

@@ -44,4 +44,4 @@ class VisionSensor:
         return wpilib.interfaces.pidsource.PIDSource.PIDSourceType.kDisplacement
 
     def receiveAngleUpdates(self):
-        self.bearing = self.network_table.getNumber('vision-bearing', 0.0)
+        self.bearing = self.network_tble.getNumber('vision-bearing', 0.0)
