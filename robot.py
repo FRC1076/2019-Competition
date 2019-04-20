@@ -179,6 +179,9 @@ class MyRobot(wpilib.TimedRobot):
         """Executed at the start of teleop mode"""
         self.forward = 0
         self.downSonar.ping()
+
+        self.visionSensor = VisionSensor(self.sd, self.logger)
+        self.visionAttendant = VisionAttendant(self.visionSensor, self.logger)
         
         self.climber.reset()
         
@@ -200,15 +203,16 @@ class MyRobot(wpilib.TimedRobot):
         goal_forward = deadzone(goal_forward, deadzone_value) * max_forward
 
         # # manual and autonomous driving will go here
-        # if self.driver.getBButton():
-        #     self.logger.info("Button B pressed, turn to target!")
-        #     self.visionAttendant.setSetpoint(0)
-        #     self.visionAttendant.move()
-        #     # if we are auton turning, we can override value with pid
-        #     rotation_value = self.visionAttendant.getTurnRate()
-        # else:
-        #     self.visionAttendant.stop()
-        #     rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
+        if self.driver.getTriggerAxis(LEFT_CONTROLLER_HAND) > 0.35:
+            #self.logger.info("Button B pressed, turn to target!")
+            self.logger.error("Left Trigger pressed, turn to target!")
+            self.visionAttendant.setSetpoint(0)
+            self.visionAttendant.move()
+            # if we are auton turning, we can override value with pid
+            rotation_value = self.visionAttendant.getTurnRate()
+        else:
+            self.visionAttendant.stop()
+            rotation_value = deadzone(rotation_value, deadzone_value) * max_rotate
             
         # if self.driver.getTriggerAxis(RIGHT_CONTROLLER_HAND):
         #     self.drivetrain.arcade_drive((self.forward/2), (rotation_value*0.75))
@@ -423,12 +427,28 @@ class VisionAttendant:
         self.vision_sensor = vision_sensor
         self.turnRate = 0
 
-        kP = 0.1
-        kI = 0.00
-        kD = 0.00
-        self.pid = wpilib.PIDController(kP, kI, kD, source=vision_sensor, output=self)
-        self.pid.setInputRange(-10, 10)
+        kP = 0.0282
+        kI = 0
+        kD = 0
+
+        self.pid = wpilib.PIDController(kP, kI, kD, source=self.vision_sensor, output=self)
+        self.pid.setInputRange(-25, 25)
         self.pid.setOutputRange(-.5, .5)
+
+        wpilib.SmartDashboard.putData("Vision-Controller", self.pid)
+
+        # self.sdWidget = wpilib.SmartDashboard.getData("Vision-Controller")
+    def initialize(self):
+        
+        self.sdWidget = wpilib.SmartDashboard.getData("Vision-Controller")
+
+        self.pid.setP(self.sdWidget.getP())
+        self.pid.setI(self.sdWidget.getI())
+        self.pid.setD(self.sdWidget.getD())
+
+        if self.logger is not None:
+            self.logger.info("Got kP %f " , self.pid.getP())
+
 
     def pidWrite(self, output):
         self.turnRate = output
