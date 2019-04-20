@@ -27,6 +27,7 @@ import robotpy_ext.common_drivers
 
 #OUR ROBOT SYSTEMS AND LIBRARIES
 from subsystems.drivetrain import Drivetrain
+from networktables import NetworkTables
 from subsystems.elevator import Elevator, ElevatorAttendant, ElevatorController
 from subsystems.hatchGrabber import Grabber
 from subsystems.lift import Lift
@@ -86,6 +87,8 @@ SERVO3_CHANNEL = 3
 DOWN_SONAR_TRIGGER_PIN = 4
 DOWN_SONAR_ECHO_PIN = 5
 
+TOLERANCE_DEGREES = 2
+
 '''
 Raw Axes
 0 L X Axis
@@ -98,6 +101,9 @@ Raw Axes
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
+
+        NetworkTables.initialize()
+        self.sd = NetworkTables.getTable("SmartDashboard")
         #assigns driver as controller 0 and operator as controller 1
         self.driver = wpilib.XboxController(0)
         self.operator = wpilib.XboxController(1)
@@ -146,7 +152,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # remote sensors
         #Vision sensor
-        self.visionSensor = VisionSensor('10.10.76.13', 5880, logger=self.logger)
+        self.visionSensor = VisionSensor(self.sd, logger=self.logger)
         #SERVO
         self.servo0 = ContinuousRotationServo(SERVO0_CHANNEL)
         self.servo1 = ContinuousRotationServo(SERVO1_CHANNEL)
@@ -162,8 +168,8 @@ class MyRobot(wpilib.TimedRobot):
         #self.sonarSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
 
         # Elevator height sonar sensor
-        self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
-        self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.5, 1.0)
+        # self.elevatorHeightSensor = SonarSensor('10.10.76.11', 5811, logger=self.logger)
+        # self.elevatorAttendant = ElevatorAttendant(self.elevatorHeightSensor, 0, 200, -0.5, 1.0)
 
         #self.visionAttendant = VisionAttendant(self.visionSensor)
 
@@ -179,7 +185,7 @@ class MyRobot(wpilib.TimedRobot):
         """Executed at the start of teleop mode"""
         self.forward = 0
         self.downSonar.ping()
-
+        self.visionAttendant.initialize()
         self.visionSensor = VisionSensor(self.sd, self.logger)
         self.visionAttendant = VisionAttendant(self.visionSensor, self.logger)
         
