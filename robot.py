@@ -181,7 +181,8 @@ class MyRobot(wpilib.TimedRobot):
         #ARCADE DRIVE CONTROL
         
         deadzone_value = 0.2
-        max_accel = 0.15
+        max_forwardaccel = 0.15
+        max_reverseaccel = -0.1
         max_forward = 1.0
         max_rotate = 1.0
 
@@ -209,10 +210,16 @@ class MyRobot(wpilib.TimedRobot):
 
         delta = goal_forward - self.forward
 
-        if abs(delta) < max_accel:
-            self.forward += delta
-        else:
-            self.forward += max_accel * sign(delta)
+        if delta > 0:
+            if delta < max_forwardaccel:
+                self.forward += delta
+            else:
+                self.forward += max_forwardaccel
+        elif delta < 0:
+            if delta > max_reverseaccel:
+                self.forward += delta
+            else:
+                self.forward += max_reverseaccel
 
         #If the driver holds the right trigger down, we will go half speed forward 
         # and backward and 75% speed when turning.
