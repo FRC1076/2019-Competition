@@ -175,7 +175,7 @@ class MyRobot(wpilib.TimedRobot):
         
     def teleopPeriodic(self):
 
-        print("NavX Gyro Roll, ", self.gyro.getRoll(), "NavXX Gyro Pitch", self.gyro.getPitch())
+        #print("NavX Gyro Roll, ", self.gyro.getRoll(), "NavXX Gyro Pitch", self.gyro.getPitch())
         
 
         #ARCADE DRIVE CONTROL
