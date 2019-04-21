@@ -152,7 +152,8 @@ class MyRobot(wpilib.TimedRobot):
 
         # remote sensors
         #Vision sensor
-        self.visionSensor = VisionSensor(self.sd, logger=self.logger)
+        self.visionSensor = VisionSensor(self.sd, self.logger)
+        self.visionAttendant = VisionAttendant(self.visionSensor, self.logger)
         #SERVO
         self.servo0 = ContinuousRotationServo(SERVO0_CHANNEL)
         self.servo1 = ContinuousRotationServo(SERVO1_CHANNEL)
@@ -296,10 +297,10 @@ class MyRobot(wpilib.TimedRobot):
         self.ballManipulator.set(ballMotorSetPoint)
 
         # Recieve range from sonarSensor
-        self.elevatorHeightSensor.receiveRangeUpdates()
+        #self.elevatorHeightSensor.receiveRangeUpdates()
 
         # Recieve angle and range from visionSensor
-        self.visionSensor.receiveAngleUpdates()
+        #self.visionSensor.receiveAngleUpdates()
         #self.logger.info("Vision bearing %f degrees", self.visionSensor.bearing)
         
         #If proximity sensor = 0
@@ -429,17 +430,18 @@ def createTalonAndSlaves(MASTER, slave1, slave2=None):
     return master_talon
     
 class VisionAttendant:
-    def __init__(self, vision_sensor):
+    def __init__(self, vision_sensor, logger=None):
         self.vision_sensor = vision_sensor
         self.turnRate = 0
+        self.logger = logger
 
-        kP = 0.0282
+        kP = 0.1
         kI = 0
         kD = 0
 
         self.pid = wpilib.PIDController(kP, kI, kD, source=self.vision_sensor, output=self)
         self.pid.setInputRange(-25, 25)
-        self.pid.setOutputRange(-.5, .5)
+        self.pid.setOutputRange(-.6, .6)
 
         wpilib.SmartDashboard.putData("Vision-Controller", self.pid)
 
